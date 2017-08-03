@@ -1,0 +1,35 @@
+	-----
+	Change Log
+	-----
+	Cristian Sulea
+	-----
+	2014-09-16
+	-----
+
+
+Change Log
+
+
+* Version 0.3.0 ( September 16, 2014 )
+	
+	* radical change to the user interface;
+	
+	* resize;
+	
+	* add text watermark;
+	
+	* change format and compression.
+	
+	[]
+
+
+* Version 0.1.0 ( July 14, 2014 )
+	
+	* first public release;
+	
+	* very similar to Windows Photo Viewer but faster after first load (is using a memory cache);
+	
+	* out of memory problem is prevented by using soft references for the memory cache.
+	
+	[]
+

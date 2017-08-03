@@ -1,0 +1,142 @@
+	-----
+	A free open source Java application created to view and alter images.
+	-----
+	Cristian Sulea
+	-----
+	2014-09-16
+	-----
+
+
+JaToo Imager
+	
+	A free open source Java application created to view and alter images.
+	Batch processing is also provided.
+	
+	Java version 1.7 or later is needed to run this program.
+
+
+* Features
+	
+	* resize, add watermark, change format and compression;
+	
+	* supported formats: JPEG (JPG), PNG, BMP, GIF, WBMP;
+	
+	* batch image processing;
+	
+	* preview for each image before batch process;
+	
+	* easy to use interface;
+	
+	[]
+	
+** Resize
+		
+	* fit inside a rectangle with the specified width and height (adding empty space if needed);
+	
+	* fill a rectangle with the specified width and height (removing margins from image if needed).
+	
+	[]
+	
+** Text Watermark
+		
+	* easy to change the font, size, style and color of the text watermark;
+	
+	* enable/disable the anti-aliasing for text watermark;
+	
+	* adjustment for watermark position;
+	
+	* allow the change of the opacity level of the watermark (transparency);
+	
+	* drop custom shadow (color, distance, size, angle, transparency).
+	
+	[]
+
+
+* Version 0.3.0 ( September 16, 2014 )
+
+** Download
+	
+	* Windows
+		
+		* {{{http://sourceforge.net/projects/jatoo-imager/files/0.3.0/jatoo-imager-0.3.0-windows.msi/download}jatoo-imager-0.3.0-windows.msi}}
+		
+		* {{{http://sourceforge.net/projects/jatoo-imager/files/0.3.0/jatoo-imager-0.3.0-windows.zip/download}jatoo-imager-0.3.0-windows.zip}}
+		
+		[]
+	
+	[]
+	
+	* Linux
+		
+		* {{{http://sourceforge.net/projects/jatoo-imager/files/0.3.0/jatoo-imager-0.3.0-linux.tar.bz2/download}jatoo-imager-0.3.0-linux.tar.bz2}}
+		
+		* {{{http://sourceforge.net/projects/jatoo-imager/files/0.3.0/jatoo-imager-0.3.0-linux.tar.gz/download}jatoo-imager-0.3.0-linux.tar.gz}}
+		
+		[]
+	
+	[]
+	
+	Older releases can be obtained from {{{./download.html}the download page}}.
+
+** Change Log
+	
+	* radical change to the user interface;
+	
+	* resize;
+	
+	* add text watermark;
+	
+	* change format and compression.
+	
+	[]
+	
+	For information on previous releases see {{{./change-log.html}the full change log}}.
+
+
+* Contact
+	
+ 	* For general information visit the project home page at:
+ 		
+ 		* {{{http://jatoo-imager.sourceforge.net}http://jatoo-imager.sourceforge.net}}
+ 		
+ 		[]
+ 	
+ 	[]
+	
+ 	* For development information visit the summary page at:
+ 		
+ 		* {{{http://sourceforge.net/projects/jatoo-imager/}http://sourceforge.net/projects/jatoo-imager/}}
+ 		
+ 		[]
+ 	
+ 	[]
+	
+	* To contact project administrator visit:
+		
+		* {{{http://cristian.sulea.net}http://cristian.sulea.net}}
+		
+		* {{{http://sourceforge.net/users/cristian-sulea/}http://sourceforge.net/users/cristian-sulea/}}
+		
+		[]
+	
+	[]
+
+
+* Licensing
+	
+	Copyright (C) Cristian Sulea ( {{{http://cristian.sulea.net}http://cristian.sulea.net}} )
+	
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Lesser General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Lesser General Public License for more details.
+	
+	You should have received a copy of the GNU Lesser General Public License
+	along with this program.  If not, see {{{http://www.gnu.org/licenses/}http://www.gnu.org/licenses/}}.
+
+
