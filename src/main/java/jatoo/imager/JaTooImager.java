@@ -17,73 +17,60 @@
 package jatoo.imager;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-import jatoo.image.ImageMemoryCache;
-import jatoo.image.ImageThumbnails;
-import jatoo.image.ImageUtils;
-import jatoo.ui.ImageLoader;
+import jatoo.image.ImageFileFilter;
+import jatoo.ui.ImageLoaderV2;
 import jatoo.ui.UIUtils;
 
 @SuppressWarnings("serial")
 public class JaTooImager extends JFrame {
 
-  private static final int RESIZE_MOUSE_WHEEL_WIDTH_RATIO = (int) (UIUtils.getScreenWidth() * 0.01f);
-  private static final int RESIZE_MOUSE_WHEEL_HEIGHT_RATIO = (int) (UIUtils.getScreenHeight() * 0.01f);
-
   static {
     UIUtils.setSystemLookAndFeel();
-    // UITheme2.setTheme(JaTooImager.class);
   }
 
-  public static void main(String[] args) throws Exception {
-    // new JaTooImagerViewer(new File("src\\test\\resources\\image.jpg"));
-    new JaTooImager(new File("d:\\OneDrive - PSS Prosoft Solutions\\Cristi - Personal\\Photos\\Share\\2013.10.21 - USA\\FB\\IMG_20131024_085105.jpg"));
-  }
+  public static void main(String[] args) {
 
-  private ImageMemoryCache imagesMemoryCache = new ImageMemoryCache();
-  private ImageMemoryCache iconsMemoryCache = new ImageMemoryCache();
+    if (new File("src/main/java").exists()) {
+      new JaTooImager(new File("src/test/resources/resize.bat"));
+      // new JaTooImager();
+    }
 
-  private ImageThumbnails thumbnails = new ImageThumbnails();
-
-  private List<File> files;
-  private int filesIndex;
-
-  private JaTooImagerCanvas canvas;
-
-  private ImageLoader imageLoader;
-
-  public JaTooImager(File file) throws Exception {
-
-    //
-    // files
-
-    files = new ArrayList<>(Arrays.asList(file.getParentFile().listFiles(new FileFilter() {
-      public boolean accept(File file) {
-        return file.isFile();
+    else {
+      if (args.length == 0) {
+        new JaTooImager();
+      } else {
+        new JaTooImager(new File(args[0]));
       }
-    })));
-    filesIndex = files.indexOf(file);
+    }
+  }
+
+  private final JaTooImagerCanvas canvas;
+  private final ImageLoaderV2 loader;
+
+  private final List<File> images = new ArrayList<>();
+  private int imagesIndex;
+
+  public JaTooImager() {
 
     //
-    // canvas
+    // canvas & loader
 
     canvas = new JaTooImagerCanvas();
+    loader = new ImageLoaderV2(canvas);
 
-    canvas.addMouseWheelListener(new ResizeMouseWheelListener());
+    canvas.setDropTargetListener(new JaTooImagerDropTargetListener(this));
 
     UIUtils.forwardDragAsMove(canvas, this);
-    UIUtils.disableDecorations(JaTooImager.this);
+    // UIUtils.disableDecorations(this);
 
     UIUtils.setActionForEscapeKeyStroke(canvas, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
@@ -95,164 +82,84 @@ public class JaTooImager extends JFrame {
     UIUtils.setActionForLeftKeyStroke(canvas, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
 
-        filesIndex--;
-        if (filesIndex < 0) {
-          filesIndex = files.size() - 1;
+        imagesIndex--;
+        if (imagesIndex < 0) {
+          imagesIndex = images.size() - 1;
         }
 
-        showImage(files.get(filesIndex));
+        showImage(images.get(imagesIndex));
       }
     });
 
     UIUtils.setActionForRightKeyStroke(canvas, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
 
-        synchronized (files) {
-
-          filesIndex++;
-          if (filesIndex >= files.size()) {
-            filesIndex = 0;
-          }
-
-          showImage(files.get(filesIndex));
+        imagesIndex++;
+        if (imagesIndex >= images.size()) {
+          imagesIndex = 0;
         }
+
+        showImage(images.get(imagesIndex));
       }
     });
-
-    setContentPane(canvas);
 
     //
     // frame
 
-    setTitle(file.getName());
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    UIUtils.centerWindowOnScreen(this, 0, 25, 25);
+    UIUtils.centerWindowOnScreen(this, 25, 25);
+
+    setIconImages(Arrays.asList(new ImageIcon(getClass().getResource("icon-016.png")).getImage(), new ImageIcon(getClass().getResource("icon-032.png")).getImage()));
+
+    setContentPane(canvas);
+
     setVisible(true);
-
-    //
-    // show the image
-
-    showImage(file);
   }
 
-  private void showImage(final File file) {
+  public JaTooImager(final File file) {
+    this();
 
-    //
-    // first of all check the image in the memory cache
+    if (file.isDirectory()) {
 
-    BufferedImage imageCached = imagesMemoryCache.get(file);
+      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
 
-    if (imageCached != null) {
-
-      if (imageLoader != null) {
-        imageLoader.forceStop();
+      if (images.size() > 0) {
+        imagesIndex = 0;
+        showImage(images.get(0));
       }
-
-      showImage(file, imageCached, true);
-
-      return;
-    }
-
-    //
-    // start a new image loader
-    // but only after the previous one is stopped
-
-    canvas.showLoader();
-
-    if (imageLoader != null) {
-      imageLoader.forceStop();
-    }
-
-    imageLoader = new ImageLoader(file) {
-
-      @Override
-      protected void onLoaderStart(File file, boolean isForceStop) {
-
-        //
-        // get the thumbnail, but only if there is one already created
-        // will be created with the image already loaded
-
-        BufferedImage thumbnail = thumbnails.get(file, 32, 32, false, true, ImageUtils.FORMAT.JPG);
-
-        if (thumbnail != null) {
-          showImage(file, thumbnail, false);
-        } else {
-          showImage(file, null, false);
-        }
-      }
-
-      @Override
-      protected void onImageLoaded(File file, BufferedImage image) {
-
-        //
-        // - show the image
-        // - update the cache
-        // - force the creation of the thumbnail
-
-        showImage(file, image, false);
-
-        imagesMemoryCache.put(file, image);
-        thumbnails.get(file, image, 32, 32, true, true, ImageUtils.FORMAT.JPG);
-      }
-
-      @Override
-      protected void onLoaderStop(File file, boolean isForceStop) {
-
-        //
-        // don't hide the loading indicator on a force stop
-        // it means that a new loading operation started
-
-        if (!isForceStop) {
-          canvas.hideLoader();
-        }
-      }
-    };
-  }
-
-  private void showImage(final File file, final BufferedImage image, final boolean hideLoader) {
-
-    canvas.setImage(image);
-
-    if (image == null) {
-      setIconImage(null);
     }
 
     else {
-
-      BufferedImage icon = iconsMemoryCache.get(file);
-
-      if (icon == null) {
-        icon = thumbnails.get(file, 32, 32, true, false, ImageUtils.FORMAT.JPG);
-        iconsMemoryCache.put(file, icon);
-      }
-
-      setIconImage(icon);
-    }
-
-    if (hideLoader) {
-      canvas.hideLoader();
+      images.addAll(Arrays.asList(file.getAbsoluteFile().getParentFile().listFiles(ImageFileFilter.getInstance())));
+      imagesIndex = images.indexOf(file.getAbsoluteFile());
+      showImage(file);
     }
   }
 
-  private class ResizeMouseWheelListener implements MouseWheelListener {
+  public void setImages(List<File> files) {
 
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
+    images.clear();
 
-      final int widthRatio, heightRatio;
+    for (File file : files) {
 
-      if (e.getPreciseWheelRotation() > 0) {
-        widthRatio = -RESIZE_MOUSE_WHEEL_WIDTH_RATIO;
-        heightRatio = -RESIZE_MOUSE_WHEEL_HEIGHT_RATIO;
+      if (file.isDirectory()) {
+        images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
       }
 
-      else {
-        widthRatio = +RESIZE_MOUSE_WHEEL_WIDTH_RATIO;
-        heightRatio = +RESIZE_MOUSE_WHEEL_HEIGHT_RATIO;
+      else if (ImageFileFilter.getInstance().accept(file)) {
+        images.add(file);
       }
-
-      setSize(getWidth() + widthRatio, getHeight() + heightRatio);
     }
+
+    if (this.images.size() > 0) {
+      imagesIndex = 0;
+      showImage(images.get(0));
+    }
+  }
+
+  private void showImage(final File file) {
+    setTitle(file.getName());
+    loader.startLoading(file);
   }
 
 }

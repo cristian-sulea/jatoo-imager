@@ -20,23 +20,26 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.LayoutManager;
+import java.awt.dnd.DropTarget;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 
 import jatoo.image.ImageUtils;
 import jatoo.ui.ImageCanvas;
+import jatoo.ui.ImageLoaderV2Listener;
 import jatoo.ui.UITheme2;
 import jatoo.ui.UIUtils;
 
 @SuppressWarnings("serial")
-public class JaTooImagerCanvas extends ImageCanvas {
+public class JaTooImagerCanvas extends ImageCanvas implements ImageLoaderV2Listener {
 
-  private JComponent loader;
+  private JLabel loader;
+  private JTextArea error;
 
   public JaTooImagerCanvas() {
 
@@ -49,9 +52,22 @@ public class JaTooImagerCanvas extends ImageCanvas {
     loader = new JLabel(new ImageIcon(loaderImageWithShadow));
     loader.setSize(loader.getPreferredSize());
 
-    hideLoader();
+    error = new JTextArea();
+    error.setOpaque(false);
+    error.setLineWrap(true);
+    error.setFocusable(false);
+
+    loader.setVisible(false);
+    error.setVisible(false);
 
     add(loader);
+    add(error);
+  }
+
+  public void setDropTargetListener(JaTooImagerDropTargetListener listener) {
+    new DropTarget(this, listener);
+    new DropTarget(loader, listener);
+    new DropTarget(error, listener);
   }
 
   // @Override
@@ -68,20 +84,34 @@ public class JaTooImagerCanvas extends ImageCanvas {
   // g.drawImage(imageDrawing, x, y, null);
   // }
 
+  // @Override
+  // protected void paintImage(Graphics2D g, BufferedImage image, int x, int y, int width, int height) {
+  // super.paintImage(g, image, x, y, width, height);
+
+  // g.setColor(Color.BLACK);
+  // g.drawRect(x, y, width - 1, height - 1);
+  // }
+
   @Override
-  protected void paintImage(Graphics2D g, BufferedImage image, int x, int y, int width, int height) {
-    super.paintImage(g, image, x, y, width, height);
-
-    g.setColor(Color.BLACK);
-    g.drawRect(x, y, width - 1, height - 1);
-  }
-
-  public void showLoader() {
+  public void onStartLoading(File file) {
+    setImage(null);
     loader.setVisible(true);
+    error.setVisible(false);
   }
 
-  public void hideLoader() {
+  @Override
+  public void onImageLoaded(File file, BufferedImage image) {
+    setImage(image);
     loader.setVisible(false);
+    error.setVisible(false);
+  }
+
+  @Override
+  public void onImageError(File file, Throwable t) {
+    setImage(null);
+    loader.setVisible(false);
+    error.setText(file + System.lineSeparator() + String.valueOf(t));
+    error.setVisible(true);
   }
 
   private class JaTooImagerCanvasLayout implements LayoutManager {
@@ -90,6 +120,7 @@ public class JaTooImagerCanvas extends ImageCanvas {
     public void layoutContainer(final Container container) {
       synchronized (container.getTreeLock()) {
         loader.setLocation((container.getWidth() - loader.getWidth()) / 2, (container.getHeight() - loader.getHeight()) / 2);
+        error.setBounds(container.getBounds());
       }
     }
 
@@ -111,5 +142,4 @@ public class JaTooImagerCanvas extends ImageCanvas {
 
     public void removeLayoutComponent(final Component comp) {}
   }
-
 }
