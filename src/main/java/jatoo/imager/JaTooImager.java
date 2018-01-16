@@ -40,8 +40,7 @@ public class JaTooImager extends JFrame {
   public static void main(String[] args) {
 
     if (new File("src/main/java").exists()) {
-      new JaTooImager(new File("src/test/resources/resize.bat"));
-      // new JaTooImager();
+      new JaTooImager();
     }
 
     else {
