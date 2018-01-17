@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 
 import jatoo.image.ImageFileFilter;
 import jatoo.ui.ImageLoaderV2;
+import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
 @SuppressWarnings("serial")
@@ -35,6 +36,7 @@ public class JaTooImager extends JFrame {
 
   static {
     UIUtils.setSystemLookAndFeel();
+    UIResources.setResourcesBaseClass(JaTooImager.class);
   }
 
   public static void main(String[] args) {
