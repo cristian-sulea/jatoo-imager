@@ -83,6 +83,10 @@ public class JaTooImager extends JFrame {
     UIUtils.setActionForLeftKeyStroke(canvas, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
 
+        if (images.size() == 0) {
+          return;
+        }
+
         imagesIndex--;
         if (imagesIndex < 0) {
           imagesIndex = images.size() - 1;
@@ -94,6 +98,10 @@ public class JaTooImager extends JFrame {
 
     UIUtils.setActionForRightKeyStroke(canvas, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
+
+        if (images.size() == 0) {
+          return;
+        }
 
         imagesIndex++;
         if (imagesIndex >= images.size()) {
