@@ -169,7 +169,7 @@ public class JaTooImager extends JFrame {
 
     if (file.isDirectory()) {
 
-      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles()));
+      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
 
       if (images.size() > 0) {
         imagesIndex = 0;
