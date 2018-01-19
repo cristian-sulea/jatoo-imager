@@ -16,6 +16,8 @@
 
 package jatoo.imager;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -38,6 +40,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import jatoo.image.ImageFileFilter;
+import jatoo.properties.FileProperties;
 import jatoo.ui.ImageLoaderV2;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
@@ -78,6 +81,8 @@ public class JaTooImager extends JFrame {
 
   private final Log logger = LogFactory.getLog(getClass());
 
+  private final FileProperties properties = new FileProperties(new File(System.getProperty("user.home"), ".jatoo-imager"));
+
   private final JaTooImagerViewer viewer;
   private final ImageLoaderV2 loader;
 
@@ -85,6 +90,24 @@ public class JaTooImager extends JFrame {
   private int imagesIndex;
 
   public JaTooImager() {
+
+    //
+    // load properties
+
+    properties.loadSilently();
+
+    //
+    // add shutdown hook to save properties
+
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      public void run() {
+
+        properties.setProperty("location", getLocation());
+        properties.setProperty("size", getSize());
+
+        properties.saveSilently();
+      }
+    });
 
     //
     // canvas & loader
@@ -146,20 +169,12 @@ public class JaTooImager extends JFrame {
     setIconImages(Arrays.asList(new ImageIcon(getClass().getResource("icon-016.png")).getImage(), new ImageIcon(getClass().getResource("icon-032.png")).getImage()));
     setContentPane(viewer);
 
-    UIUtils.centerWindowOnScreen(this, 25, 25);
+    setLocation(properties.getPropertyAsPoint("location", new Point(Integer.MIN_VALUE, Integer.MIN_VALUE)));
+    setSize(properties.getPropertyAsDimension("size", new Dimension(Integer.MIN_VALUE, Integer.MIN_VALUE)));
 
-    //
-    // add shutdown hook for #destroy()
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      public void run() {
-        System.out.println(getLocation());
-        System.out.println(UIUtils.isVisibleOnTheScreen(JaTooImager.this));
-      }
-    });
-
-    //
-    //
+    if (!UIUtils.isVisibleOnTheScreen(this)) {
+      UIUtils.centerWindowOnScreen(this, 50, 50);
+    }
 
     setVisible(true);
   }
