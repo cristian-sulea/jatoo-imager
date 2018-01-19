@@ -16,8 +16,16 @@
 
 package jatoo.imager;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,15 +34,28 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import jatoo.image.ImageFileFilter;
 import jatoo.ui.ImageLoaderV2;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
+/**
+ * The application.
+ * 
+ * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
+ * @version 3.0, January 19, 2018
+ */
 @SuppressWarnings("serial")
 public class JaTooImager extends JFrame {
 
   static {
+
+    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
+
     UIUtils.setSystemLookAndFeel();
     UIResources.setResourcesBaseClass(JaTooImager.class);
   }
@@ -42,7 +63,8 @@ public class JaTooImager extends JFrame {
   public static void main(String[] args) {
 
     if (new File("src/main/java").exists()) {
-      new JaTooImager();
+      // new JaTooImager();
+      new JaTooImager(new File("d:\\Temp\\xxx\\"));
     }
 
     else {
@@ -54,7 +76,9 @@ public class JaTooImager extends JFrame {
     }
   }
 
-  private final JaTooImagerCanvas canvas;
+  private final Log logger = LogFactory.getLog(getClass());
+
+  private final JaTooImagerCanvas viewer;
   private final ImageLoaderV2 loader;
 
   private final List<File> images = new ArrayList<>();
@@ -65,22 +89,25 @@ public class JaTooImager extends JFrame {
     //
     // canvas & loader
 
-    canvas = new JaTooImagerCanvas();
-    loader = new ImageLoaderV2(canvas);
+    viewer = new JaTooImagerCanvas();
+    loader = new ImageLoaderV2(viewer);
 
-    canvas.setDropTargetListener(new JaTooImagerDropTargetListener(this));
+    // canvas.addMouseWheelListener(new ResizeMouseWheelListener());
+    // canvas.setDropTargetListener(new JaTooImagerDropTargetListener(this));
 
-    UIUtils.forwardDragAsMove(canvas, this);
+    new DropTarget(this, new TheDropTargetListener());
+
+    // UIUtils.forwardDragAsMove(canvas, this);
     // UIUtils.disableDecorations(this);
 
-    UIUtils.setActionForEscapeKeyStroke(canvas, new AbstractAction() {
+    UIUtils.setActionForEscapeKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         JaTooImager.this.setVisible(false);
         JaTooImager.this.dispose();
       }
     });
 
-    UIUtils.setActionForLeftKeyStroke(canvas, new AbstractAction() {
+    UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
 
         if (images.size() == 0) {
@@ -96,7 +123,7 @@ public class JaTooImager extends JFrame {
       }
     });
 
-    UIUtils.setActionForRightKeyStroke(canvas, new AbstractAction() {
+    UIUtils.setActionForRightKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
 
         if (images.size() == 0) {
@@ -116,11 +143,23 @@ public class JaTooImager extends JFrame {
     // frame
 
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setIconImages(Arrays.asList(new ImageIcon(getClass().getResource("icon-016.png")).getImage(), new ImageIcon(getClass().getResource("icon-032.png")).getImage()));
+    setContentPane(viewer);
+
     UIUtils.centerWindowOnScreen(this, 25, 25);
 
-    setIconImages(Arrays.asList(new ImageIcon(getClass().getResource("icon-016.png")).getImage(), new ImageIcon(getClass().getResource("icon-032.png")).getImage()));
+    //
+    // add shutdown hook for #destroy()
 
-    setContentPane(canvas);
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      public void run() {
+        System.out.println(getLocation());
+        System.out.println(UIUtils.isVisibleOnTheScreen(JaTooImager.this));
+      }
+    });
+
+    //
+    //
 
     setVisible(true);
   }
@@ -130,7 +169,7 @@ public class JaTooImager extends JFrame {
 
     if (file.isDirectory()) {
 
-      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
+      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles()));
 
       if (images.size() > 0) {
         imagesIndex = 0;
@@ -171,4 +210,27 @@ public class JaTooImager extends JFrame {
     loader.startLoading(file);
   }
 
+  private class TheDropTargetListener extends DropTargetAdapter {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void drop(DropTargetDropEvent event) {
+
+      event.acceptDrop(DnDConstants.ACTION_COPY);
+
+      Transferable transferable = event.getTransferable();
+
+      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+
+        try {
+          setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
+        }
+
+        catch (UnsupportedFlavorException | IOException e) {
+          logger.error("failed to get the dragged data", e);
+        }
+      }
+    }
+
+  }
 }
