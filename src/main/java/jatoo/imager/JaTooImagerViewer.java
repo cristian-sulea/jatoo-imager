@@ -40,7 +40,7 @@ import jatoo.ui.UIUtils;
  * The "viewer" ({@link ImageViewerV4}) component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 3.0, January 19, 2018
+ * @version 3.1, January 22, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerViewer extends JComponent implements ImageLoaderV2Listener {
@@ -76,7 +76,12 @@ public class JaTooImagerViewer extends JComponent implements ImageLoaderV2Listen
 
   @Override
   public void onStartLoading(File file) {
-    viewer.setImage(null);
+
+    if (loader.isVisible()) {
+      viewer.setImage(null);
+      repaint();
+    }
+
     loader.setVisible(true);
     error.setVisible(false);
   }
