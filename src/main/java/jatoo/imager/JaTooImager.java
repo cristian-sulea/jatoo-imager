@@ -35,9 +35,12 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.sun.jna.platform.FileUtils;
 
 import jatoo.image.ImageFileFilter;
 import jatoo.properties.FileProperties;
@@ -115,9 +118,6 @@ public class JaTooImager extends JFrame {
     viewer = new JaTooImagerViewer();
     loader = new ImageLoaderV2(viewer);
 
-    // canvas.addMouseWheelListener(new ResizeMouseWheelListener());
-    // canvas.setDropTargetListener(new JaTooImagerDropTargetListener(this));
-
     new DropTarget(this, new TheDropTargetListener());
 
     // UIUtils.forwardDragAsMove(canvas, this);
@@ -130,35 +130,21 @@ public class JaTooImager extends JFrame {
       }
     });
 
-    UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
+    UIUtils.setActionForRightKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-
-        if (images.size() == 0) {
-          return;
-        }
-
-        imagesIndex--;
-        if (imagesIndex < 0) {
-          imagesIndex = images.size() - 1;
-        }
-
-        showImage(images.get(imagesIndex));
+        showNextImage();
       }
     });
 
-    UIUtils.setActionForRightKeyStroke(viewer, new AbstractAction() {
+    UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
+        showPrevImage();
+      }
+    });
 
-        if (images.size() == 0) {
-          return;
-        }
-
-        imagesIndex++;
-        if (imagesIndex >= images.size()) {
-          imagesIndex = 0;
-        }
-
-        showImage(images.get(imagesIndex));
+    UIUtils.setActionForDeleteKeyStroke(viewer, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        deleteImage();
       }
     });
 
@@ -199,7 +185,7 @@ public class JaTooImager extends JFrame {
     }
   }
 
-  public void setImages(List<File> files) {
+  public synchronized void setImages(List<File> files) {
 
     images.clear();
 
@@ -220,9 +206,69 @@ public class JaTooImager extends JFrame {
     }
   }
 
-  private void showImage(final File file) {
-    setTitle(file.getName());
-    loader.startLoading(file);
+  private synchronized void showImage(final File file) {
+
+    if (file != null) {
+      setTitle(file.getName());
+      loader.startLoading(file);
+    }
+
+    else {
+      setTitle(null);
+      viewer.onImageLoaded(null, null);
+    }
+  }
+
+  private synchronized void showNextImage() {
+
+    if (images.size() == 0) {
+      showImage(null);
+      return;
+    }
+
+    imagesIndex++;
+    if (imagesIndex >= images.size()) {
+      imagesIndex = 0;
+    }
+
+    showImage(images.get(imagesIndex));
+  }
+
+  private synchronized void showPrevImage() {
+
+    if (images.size() == 0) {
+      return;
+    }
+
+    imagesIndex--;
+    if (imagesIndex < 0) {
+      imagesIndex = images.size() - 1;
+    }
+
+    showImage(images.get(imagesIndex));
+  }
+
+  private synchronized void deleteImage() {
+
+    if (images.size() == 0) {
+      return;
+    }
+
+    File image = images.remove(imagesIndex);
+    imagesIndex--;
+
+    try {
+      FileUtils.getInstance().moveToTrash(new File[] { image });
+      System.out.println("info: trash (hopefully)");
+    }
+
+    catch (IOException ex) {
+      if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, UIResources.getText("delete.warning.message"), UIResources.getText("detele.warning.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+        image.delete();
+      }
+    }
+
+    showNextImage();
   }
 
   private class TheDropTargetListener extends DropTargetAdapter {
