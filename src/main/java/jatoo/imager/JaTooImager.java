@@ -16,13 +16,10 @@
 
 package jatoo.imager;
 
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
@@ -33,9 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import com.sun.jna.platform.FileUtils;
 
 import jatoo.image.ImageFileFilter;
-import jatoo.properties.FileProperties;
+import jatoo.ui.AppFrame;
 import jatoo.ui.ImageLoaderV2;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
@@ -52,10 +46,10 @@ import jatoo.ui.UIUtils;
  * The application.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 3.0, January 19, 2018
+ * @version 3.1, January 25, 2018
  */
 @SuppressWarnings("serial")
-public class JaTooImager extends JFrame {
+public class JaTooImager extends AppFrame {
 
   static {
 
@@ -84,8 +78,6 @@ public class JaTooImager extends JFrame {
 
   private final Log logger = LogFactory.getLog(getClass());
 
-  private final FileProperties properties = new FileProperties(new File(System.getProperty("user.home"), ".jatoo-imager"));
-
   private final JaTooImagerViewer viewer;
   private final ImageLoaderV2 loader;
 
@@ -95,38 +87,20 @@ public class JaTooImager extends JFrame {
   public JaTooImager() {
 
     //
-    // load properties
-
-    properties.loadSilently();
-
-    //
-    // add shutdown hook to save properties
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      public void run() {
-
-        properties.setProperty("location", getLocation());
-        properties.setProperty("size", getSize());
-
-        properties.saveSilently();
-      }
-    });
-
-    //
     // canvas & loader
 
     viewer = new JaTooImagerViewer();
     loader = new ImageLoaderV2(viewer);
 
-    new DropTarget(this, new TheDropTargetListener());
+    addDropTargetListener(new TheDropTargetListener());
 
     // UIUtils.forwardDragAsMove(canvas, this);
     // UIUtils.disableDecorations(this);
 
     UIUtils.setActionForEscapeKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        JaTooImager.this.setVisible(false);
-        JaTooImager.this.dispose();
+        setVisible(false);
+        dispose();
       }
     });
 
@@ -151,17 +125,7 @@ public class JaTooImager extends JFrame {
     //
     // frame
 
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setIconImages(Arrays.asList(new ImageIcon(getClass().getResource("icon-016.png")).getImage(), new ImageIcon(getClass().getResource("icon-032.png")).getImage()));
     setContentPane(viewer);
-
-    setLocation(properties.getPropertyAsPoint("location", new Point(Integer.MIN_VALUE, Integer.MIN_VALUE)));
-    setSize(properties.getPropertyAsDimension("size", new Dimension(Integer.MIN_VALUE, Integer.MIN_VALUE)));
-
-    if (!UIUtils.isVisibleOnTheScreen(this)) {
-      UIUtils.centerWindowOnScreen(this, 50, 50);
-    }
-
     setVisible(true);
   }
 
@@ -263,7 +227,7 @@ public class JaTooImager extends JFrame {
     }
 
     catch (IOException ex) {
-      if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, UIResources.getText("delete.warning.message"), UIResources.getText("detele.warning.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)) {
+      if (showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
         image.delete();
       }
     }
