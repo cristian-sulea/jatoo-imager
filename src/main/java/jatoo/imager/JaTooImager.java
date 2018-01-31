@@ -16,6 +16,7 @@
 
 package jatoo.imager;
 
+import java.awt.BorderLayout;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -30,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.JPanel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +48,7 @@ import jatoo.ui.UIUtils;
  * The application.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 3.1, January 25, 2018
+ * @version 4.0, January 31, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImager extends AppFrame {
@@ -63,8 +65,8 @@ public class JaTooImager extends AppFrame {
   public static void main(String[] args) {
 
     if (new File("src/main/java").exists()) {
-      // new JaTooImager();
-      new JaTooImager(new File("d:\\Temp\\xxx\\"));
+      new JaTooImager();
+      // new JaTooImager(new File("d:\\Temp\\xxx\\"));
     }
 
     else {
@@ -79,6 +81,8 @@ public class JaTooImager extends AppFrame {
   private final Log logger = LogFactory.getLog(getClass());
 
   private final JaTooImagerViewer viewer;
+  private JaTooImagerButtons buttons;
+
   private final ImageLoaderV2 loader;
 
   private final List<File> images = new ArrayList<>();
@@ -90,6 +94,7 @@ public class JaTooImager extends AppFrame {
     // canvas & loader
 
     viewer = new JaTooImagerViewer();
+    buttons = new JaTooImagerButtons(this);
     loader = new ImageLoaderV2(viewer);
 
     addDropTargetListener(new TheDropTargetListener());
@@ -106,26 +111,30 @@ public class JaTooImager extends AppFrame {
 
     UIUtils.setActionForRightKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        showNextImage();
+        showNext();
       }
     });
 
     UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        showPrevImage();
+        showPrev();
       }
     });
 
     UIUtils.setActionForDeleteKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        deleteImage();
+        delete();
       }
     });
 
     //
-    // frame
+    // content pane
 
-    setContentPane(viewer);
+    JPanel contentPane = new JPanel(new BorderLayout(0, 0));
+    contentPane.add(viewer, BorderLayout.CENTER);
+    contentPane.add(buttons, BorderLayout.SOUTH);
+
+    setContentPane(contentPane);
     setVisible(true);
   }
 
@@ -183,7 +192,7 @@ public class JaTooImager extends AppFrame {
     }
   }
 
-  private synchronized void showNextImage() {
+  public synchronized void showNext() {
 
     if (images.size() == 0) {
       showImage(null);
@@ -198,7 +207,7 @@ public class JaTooImager extends AppFrame {
     showImage(images.get(imagesIndex));
   }
 
-  private synchronized void showPrevImage() {
+  public synchronized void showPrev() {
 
     if (images.size() == 0) {
       return;
@@ -212,7 +221,7 @@ public class JaTooImager extends AppFrame {
     showImage(images.get(imagesIndex));
   }
 
-  private synchronized void deleteImage() {
+  public synchronized void delete() {
 
     if (images.size() == 0) {
       return;
@@ -223,16 +232,65 @@ public class JaTooImager extends AppFrame {
 
     try {
       FileUtils.getInstance().moveToTrash(new File[] { image });
-      System.out.println("info: trash (hopefully)");
+      logger.info("image (" + image + ") deleted (moved to trash)");
     }
 
     catch (IOException ex) {
       if (showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
         image.delete();
+        logger.info("image (" + image + ") deleted (permanently)");
       }
     }
 
-    showNextImage();
+    showNext();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#zoomIn()
+   */
+  public synchronized void zoomIn() {
+    viewer.zoomIn();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#zoomOut()
+   */
+  public synchronized void zoomOut() {
+    viewer.zoomOut();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#zoomToBestFit()
+   */
+  public synchronized void zoomToBestFit() {
+    viewer.zoomToBestFit();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#zoomToRealSize()
+   */
+  public synchronized void zoomToRealSize() {
+    viewer.zoomToRealSize();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#rotateLeft()
+   */
+  public synchronized void rotateLeft() {
+    viewer.rotateLeft();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#rotateRight()
+   */
+  public synchronized void rotateRight() {
+    viewer.rotateRight();
   }
 
   private class TheDropTargetListener extends DropTargetAdapter {

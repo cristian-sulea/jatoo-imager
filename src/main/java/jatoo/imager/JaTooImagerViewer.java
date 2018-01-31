@@ -40,14 +40,14 @@ import jatoo.ui.UIUtils;
  * The "viewer" ({@link ImageViewerV4}) component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 3.1, January 22, 2018
+ * @version 3.2, January 31, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerViewer extends JComponent implements ImageLoaderV2Listener {
 
-  private ImageViewerV4 viewer;
-  private JLabel loader;
-  private JTextArea error;
+  private final ImageViewerV4 viewer;
+  private final JLabel loader;
+  private final JTextArea error;
 
   public JaTooImagerViewer() {
 
@@ -134,5 +134,55 @@ public class JaTooImagerViewer extends JComponent implements ImageLoaderV2Listen
     public void addLayoutComponent(final String name, final Component comp) {}
 
     public void removeLayoutComponent(final Component comp) {}
+  }
+
+  /**
+   * 
+   * @see jatoo.ui.ImageViewerV4#zoomIn()
+   */
+  final void zoomIn() {
+    viewer.zoomIn();
+  }
+
+  /**
+   * 
+   * @see jatoo.ui.ImageViewerV4#zoomOut()
+   */
+  final void zoomOut() {
+    viewer.zoomOut();
+  }
+
+  /**
+   * 
+   * @see jatoo.ui.ImageViewerV4#setBestFit()
+   */
+  final void zoomToBestFit() {
+    viewer.setBestFit();
+  }
+
+  /**
+   * 
+   * @see jatoo.ui.ImageViewerV4#setRealSize()
+   */
+  final void zoomToRealSize() {
+    viewer.setRealSize();
+  }
+
+  void rotateLeft() {
+
+    BufferedImage image = viewer.getImage();
+
+    if (image != null) {
+      viewer.setImage(ImageUtils.rotate(image, 270));
+    }
+  }
+
+  void rotateRight() {
+
+    BufferedImage image = viewer.getImage();
+
+    if (image != null) {
+      viewer.setImage(ImageUtils.rotate(image, 90));
+    }
   }
 }
