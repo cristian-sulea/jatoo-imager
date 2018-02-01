@@ -48,7 +48,7 @@ import jatoo.ui.UIUtils;
  * The application.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 4.0, January 31, 2018
+ * @version 4.1, February 1, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImager extends AppFrame {
@@ -65,8 +65,8 @@ public class JaTooImager extends AppFrame {
   public static void main(String[] args) {
 
     if (new File("src/main/java").exists()) {
-      new JaTooImager();
-      // new JaTooImager(new File("d:\\Temp\\xxx\\"));
+      // new JaTooImager();
+      new JaTooImager(new File("d:\\Temp\\xxx\\"));
     }
 
     else {
@@ -99,9 +99,6 @@ public class JaTooImager extends AppFrame {
 
     addDropTargetListener(new TheDropTargetListener());
 
-    // UIUtils.forwardDragAsMove(canvas, this);
-    // UIUtils.disableDecorations(this);
-
     UIUtils.setActionForEscapeKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         setVisible(false);
@@ -114,7 +111,6 @@ public class JaTooImager extends AppFrame {
         showNext();
       }
     });
-
     UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         showPrev();
@@ -124,6 +120,17 @@ public class JaTooImager extends AppFrame {
     UIUtils.setActionForDeleteKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         delete();
+      }
+    });
+
+    UIUtils.setActionForCtrlLeftKeyStroke(viewer, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        rotateLeft();
+      }
+    });
+    UIUtils.setActionForCtrlRightKeyStroke(viewer, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        rotateRight();
       }
     });
 
