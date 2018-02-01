@@ -69,7 +69,7 @@
 
 
   <properties>
-    <launch4j.fileName>JaToo Imager.exe</launch4j.fileName>
+    <launch4j.fileName>JaToo Imager</launch4j.fileName>
     <launch4j.mainClass>jatoo.imager.JaTooImager</launch4j.mainClass>
   </properties>
 
