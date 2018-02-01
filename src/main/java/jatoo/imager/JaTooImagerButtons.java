@@ -104,8 +104,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     barR.add(rotateLeft);
     barR.add(rotateRight);
     barR.addSeparator();
-    barR.add(resize);
-    barR.addSeparator();
+//    barR.add(resize);
+//    barR.addSeparator();
     barR.add(delete);
 
     // barR.addSeparator();
