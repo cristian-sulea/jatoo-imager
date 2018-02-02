@@ -70,7 +70,7 @@
 
   <properties>
     <launch4j.fileName>JaToo Imager</launch4j.fileName>
-    <launch4j.mainClass>jatoo.imager.JaTooImager</launch4j.mainClass>
+    <launch4j.mainClass>jatoo.imager.JaTooImagerLauncher</launch4j.mainClass>
   </properties>
 
 
