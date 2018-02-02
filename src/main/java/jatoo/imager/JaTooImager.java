@@ -62,22 +62,6 @@ public class JaTooImager extends AppFrame {
     UIResources.setResourcesBaseClass(JaTooImager.class);
   }
 
-  public static void main(String[] args) {
-
-    if (new File("src/main/java").exists()) {
-      // new JaTooImager();
-      new JaTooImager(new File("d:\\Temp\\xxx\\"));
-    }
-
-    else {
-      if (args.length == 0) {
-        new JaTooImager();
-      } else {
-        new JaTooImager(new File(args[0]));
-      }
-    }
-  }
-
   private final Log logger = LogFactory.getLog(getClass());
 
   private final JaTooImagerViewer viewer;
@@ -321,6 +305,5 @@ public class JaTooImager extends AppFrame {
         }
       }
     }
-
   }
 }
