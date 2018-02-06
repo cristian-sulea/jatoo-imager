@@ -54,7 +54,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
   private final JButton delete;
 
-  // private final JButton tools;
+  private final JButton tools;
 
   public JaTooImagerButtons(final JaTooImager imager) {
     this.imager = imager;
@@ -76,7 +76,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     delete = createButton(UIResources.getImageIcon("delete-16.png"), UIResources.getText("delete.button.toolTipText"));
 
-    // tools = createButton(UIResources.getImageIcon("tools-16.png"), UIResources.getText("buttons.tools.toolTipText"));
+    tools = createButton(UIResources.getImageIcon("tools-16.png"), UIResources.getText("buttons.tools.toolTipText"));
 
     JToolBar barL = new JToolBar();
     barL.setBorder(null);
@@ -104,12 +104,12 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     barR.add(rotateLeft);
     barR.add(rotateRight);
     barR.addSeparator();
-//    barR.add(resize);
-//    barR.addSeparator();
+    // barR.add(resize);
+    // barR.addSeparator();
     barR.add(delete);
 
-    // barR.addSeparator();
-    // barR.add(tools);
+    barR.addSeparator();
+    barR.add(tools);
 
     setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
     add(barL);
