@@ -17,28 +17,92 @@
 package jatoo.imager;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * The launcher.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.0, February 2, 2018
+ * @version 1.1, February 5, 2018
  */
 public class JaTooImagerLauncher {
 
+  /** The logger. */
+  private static final Log logger = LogFactory.getLog(JaTooImagerLauncher.class);
+
   public static void main(String[] args) {
 
-    if (new File("src/main/java").exists()) {
-      // new JaTooImager();
-      new JaTooImager(new File("d:\\Temp\\xxx\\"));
-    }
+    try {
 
-    else {
-      if (args.length == 0) {
-        new JaTooImager();
-      } else {
+      if (args.length > 0) {
         new JaTooImager(new File(args[0]));
       }
+
+      else if (new File("src/main/java").exists()) {
+        // new JaTooImager();
+        new JaTooImager(new File("d:\\Temp\\xxx\\"));
+      }
+
+      File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
+      images.mkdirs();
+      for (File file : images.listFiles()) {
+        file.delete();
+      }
+
+      //
+      // uneori read file este prea rapid si fisierul este gol
+      // celalalt proces nu a apucat sa termine de scris
+
+      WatchService watcher = FileSystems.getDefault().newWatchService();
+      Path dir = images.toPath();
+      WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
+
+      for (;;) {
+
+        key = watcher.take();
+
+        for (WatchEvent<?> event : key.pollEvents()) {
+          WatchEvent.Kind<?> kind = event.kind();
+
+          if (kind == StandardWatchEventKinds.OVERFLOW) {
+            continue;
+          }
+
+          @SuppressWarnings("unchecked")
+          WatchEvent<Path> ev = (WatchEvent<Path>) event;
+          Path path = ev.context();
+          File file = dir.resolve(path).toFile();
+
+          try {
+            new JaTooImager(new File(FileUtils.readFileToString(file).trim()));
+            file.delete();
+          }
+
+          catch (IOException e) {
+            logger.error("failed to read the file with the image path", e);
+          }
+        }
+
+        boolean valid = key.reset();
+        if (!valid) {
+          break;
+        }
+      }
+    }
+
+    catch (IOException | InterruptedException e) {
+      logger.fatal("failed to watch and wait for new images", e);
     }
   }
+
 }
