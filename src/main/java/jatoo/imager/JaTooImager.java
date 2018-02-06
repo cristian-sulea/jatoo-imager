@@ -32,6 +32,7 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -85,8 +86,14 @@ public class JaTooImager extends AppFrame {
 
     UIUtils.setActionForEscapeKeyStroke(viewer, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
+
         setVisible(false);
+
+        loader.stopThread();
+        saveProperties();
         dispose();
+
+        System.gc();
       }
     });
 
@@ -125,8 +132,13 @@ public class JaTooImager extends AppFrame {
     contentPane.add(viewer, BorderLayout.CENTER);
     contentPane.add(buttons, BorderLayout.SOUTH);
 
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
     setContentPane(contentPane);
     setVisible(true);
+
+    contentPane.setFocusable(true);
+    contentPane.requestFocusInWindow();
   }
 
   public JaTooImager(final File file) {
