@@ -38,7 +38,7 @@ import jatoo.ui.UIUtils;
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
  * @version 1.1, February 5, 2018
  */
-public class JaTooImagerLauncher {
+public class JaTooImager {
 
   static {
 
@@ -49,7 +49,7 @@ public class JaTooImagerLauncher {
     UIResources.setResourcesBaseClass(JaTooImagerWindow.class);
   }
 
-  private static final Log logger = LogFactory.getLog(JaTooImagerLauncher.class);
+  private static final Log logger = LogFactory.getLog(JaTooImager.class);
 
   public static void main(String[] args) {
 

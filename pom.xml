@@ -75,7 +75,7 @@
   <properties>
     <launch4j.fileName>launcher</launch4j.fileName>
 <!--     <launch4j.icon>src/launch4j/icon.ico</launch4j.icon> -->
-    <launch4j.mainClass>jatoo.imager.JaTooImagerLauncher</launch4j.mainClass>
+    <launch4j.mainClass>jatoo.imager.JaTooImager</launch4j.mainClass>
     <launch4j.singleInstance.mutexName>jatoo-imager</launch4j.singleInstance.mutexName>
   </properties>
 
