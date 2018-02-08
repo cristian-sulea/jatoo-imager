@@ -41,7 +41,7 @@ import com.sun.jna.platform.FileUtils;
 
 import jatoo.image.ImageFileFilter;
 import jatoo.ui.AppFrame;
-import jatoo.ui.ImageLoaderV2;
+import jatoo.ui.ImageLoader;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
@@ -68,7 +68,7 @@ public class JaTooImager extends AppFrame {
   private final JaTooImagerViewer viewer;
   private JaTooImagerButtons buttons;
 
-  private final ImageLoaderV2 loader;
+  private final ImageLoader loader;
 
   private final List<File> images = new ArrayList<>();
   private int imagesIndex;
@@ -80,7 +80,7 @@ public class JaTooImager extends AppFrame {
 
     viewer = new JaTooImagerViewer();
     buttons = new JaTooImagerButtons(this);
-    loader = new ImageLoaderV2(viewer);
+    loader = new ImageLoader(viewer);
 
     addDropTargetListener(new TheDropTargetListener());
 

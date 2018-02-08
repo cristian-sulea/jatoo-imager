@@ -31,7 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 import jatoo.image.ImageUtils;
-import jatoo.ui.ImageLoaderV2Listener;
+import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.ImageViewerV4;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
@@ -43,7 +43,7 @@ import jatoo.ui.UIUtils;
  * @version 3.2, January 31, 2018
  */
 @SuppressWarnings("serial")
-public class JaTooImagerViewer extends JComponent implements ImageLoaderV2Listener {
+public class JaTooImagerViewer extends JComponent implements ImageLoaderListener {
 
   private final ImageViewerV4 viewer;
   private final JLabel loader;

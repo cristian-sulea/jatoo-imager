@@ -85,7 +85,7 @@ public class JaTooImagerLauncher {
 
           try {
             new JaTooImager(new File(FileUtils.readFileToString(file).trim()));
-//            file.delete();
+            file.delete();
           }
 
           catch (IOException e) {
