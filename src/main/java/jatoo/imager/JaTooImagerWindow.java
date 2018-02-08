@@ -24,6 +24,7 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,8 +41,9 @@ import org.apache.commons.logging.LogFactory;
 import com.sun.jna.platform.FileUtils;
 
 import jatoo.image.ImageFileFilter;
-import jatoo.ui.AppFrame;
+import jatoo.ui.AppWindowFrame;
 import jatoo.ui.ImageLoader;
+import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
@@ -49,19 +51,10 @@ import jatoo.ui.UIUtils;
  * The application.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 4.1, February 1, 2018
+ * @version 4.2, February 8, 2018
  */
 @SuppressWarnings("serial")
-public class JaTooImager extends AppFrame {
-
-  static {
-
-    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
-
-    UIUtils.setSystemLookAndFeel();
-    UIResources.setResourcesBaseClass(JaTooImager.class);
-  }
+public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderListener {
 
   private final Log logger = LogFactory.getLog(getClass());
 
@@ -73,14 +66,14 @@ public class JaTooImager extends AppFrame {
   private final List<File> images = new ArrayList<>();
   private int imagesIndex;
 
-  public JaTooImager() {
+  public JaTooImagerWindow() {
 
     //
     // canvas & loader
 
     viewer = new JaTooImagerViewer();
     buttons = new JaTooImagerButtons(this);
-    loader = new ImageLoader(viewer);
+    loader = new ImageLoader(this, viewer);
 
     addDropTargetListener(new TheDropTargetListener());
 
@@ -141,7 +134,7 @@ public class JaTooImager extends AppFrame {
     contentPane.requestFocusInWindow();
   }
 
-  public JaTooImager(final File file) {
+  public JaTooImagerWindow(final File file) {
     this();
 
     if (file.isDirectory()) {
@@ -185,7 +178,7 @@ public class JaTooImager extends AppFrame {
   private synchronized void showImage(final File file) {
 
     if (file != null) {
-      setTitle(file.getName());
+      // setTitle(file.getName());
       loader.startLoading(file);
     }
 
@@ -194,6 +187,19 @@ public class JaTooImager extends AppFrame {
       viewer.onImageLoaded(null, null);
     }
   }
+
+  @Override
+  public void onStartLoading(File file) {
+    setTitle(file.getName() + " (loading...)");
+  }
+
+  @Override
+  public void onImageLoaded(File file, BufferedImage image) {
+    setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
+  }
+
+  @Override
+  public void onImageError(File file, Throwable t) {}
 
   public synchronized void showNext() {
 

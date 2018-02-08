@@ -29,6 +29,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import jatoo.ui.UIResources;
+import jatoo.ui.UIUtils;
+
 /**
  * The launcher.
  * 
@@ -37,7 +40,15 @@ import org.apache.commons.logging.LogFactory;
  */
 public class JaTooImagerLauncher {
 
-  /** The logger. */
+  static {
+
+    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
+
+    UIUtils.setSystemLookAndFeel();
+    UIResources.setResourcesBaseClass(JaTooImagerWindow.class);
+  }
+
   private static final Log logger = LogFactory.getLog(JaTooImagerLauncher.class);
 
   public static void main(String[] args) {
@@ -45,12 +56,12 @@ public class JaTooImagerLauncher {
     try {
 
       if (args.length > 0) {
-        new JaTooImager(new File(args[0]));
+        new JaTooImagerWindow(new File(args[0]));
       }
 
       else if (new File("src/main/java").exists()) {
         // new JaTooImager();
-        new JaTooImager(new File("d:\\Temp\\xxx\\"));
+        new JaTooImagerWindow(new File("d:\\Temp\\xxx\\"));
       }
 
       File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
@@ -84,7 +95,7 @@ public class JaTooImagerLauncher {
           File file = dir.resolve(path).toFile();
 
           try {
-            new JaTooImager(new File(FileUtils.readFileToString(file).trim()));
+            new JaTooImagerWindow(new File(FileUtils.readFileToString(file).trim()));
             file.delete();
           }
 

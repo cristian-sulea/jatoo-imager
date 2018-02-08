@@ -36,7 +36,7 @@ import jatoo.ui.UIResources;
 @SuppressWarnings("serial")
 public class JaTooImagerButtons extends JComponent implements ActionListener {
 
-  private final JaTooImager imager;
+  private final JaTooImagerWindow imager;
 
   private final JButton zoomIn;
   private final JButton zoomOut;
@@ -56,7 +56,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
   private final JButton tools;
 
-  public JaTooImagerButtons(final JaTooImager imager) {
+  public JaTooImagerButtons(final JaTooImagerWindow imager) {
     this.imager = imager;
 
     zoomIn = createButton(UIResources.getImageIcon("zoomIn-16.png"), UIResources.getText("zoomIn.button.toolTipText"));
