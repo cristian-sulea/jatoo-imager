@@ -17,106 +17,38 @@
 package jatoo.imager;
 
 import java.awt.BorderLayout;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.sun.jna.platform.FileUtils;
-
-import jatoo.image.ImageFileFilter;
 import jatoo.ui.AppWindowFrame;
-import jatoo.ui.ImageLoader;
 import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
 /**
- * The application.
+ * The window.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 4.2, February 8, 2018
+ * @version 5.0, February 13, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderListener {
 
-  private final Log logger = LogFactory.getLog(getClass());
-
   private final JaTooImagerViewer viewer;
-  private JaTooImagerButtons buttons;
+  private final JaTooImagerButtons buttons;
 
-  private final ImageLoader loader;
-
-  private final List<File> images = new ArrayList<>();
-  private int imagesIndex;
-
-  public JaTooImagerWindow() {
+  public JaTooImagerWindow(final JaTooImager imager) {
 
     //
     // canvas & loader
 
     viewer = new JaTooImagerViewer();
-    buttons = new JaTooImagerButtons(this);
-    loader = new ImageLoader(this, viewer);
-
-    addDropTargetListener(new TheDropTargetListener());
-
-    UIUtils.setActionForEscapeKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-
-        setVisible(false);
-
-        loader.stopThread();
-        saveProperties();
-        dispose();
-
-        System.gc();
-      }
-    });
-
-    UIUtils.setActionForRightKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        showNext();
-      }
-    });
-    UIUtils.setActionForLeftKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        showPrev();
-      }
-    });
-
-    UIUtils.setActionForDeleteKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        delete();
-      }
-    });
-
-    UIUtils.setActionForCtrlLeftKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        rotateLeft();
-      }
-    });
-    UIUtils.setActionForCtrlRightKeyStroke(viewer, new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        rotateRight();
-      }
-    });
+    buttons = new JaTooImagerButtons(imager);
 
     //
     // content pane
@@ -132,196 +64,81 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
 
     contentPane.setFocusable(true);
     contentPane.requestFocusInWindow();
+
+    //
+    // actions
+
+    UIUtils.setActionForRightKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        imager.showNext();
+      }
+    });
+    UIUtils.setActionForLeftKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        imager.showPrev();
+      }
+    });
+
+    UIUtils.setActionForDeleteKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        imager.delete();
+      }
+    });
+
+    UIUtils.setActionForCtrlLeftKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        imager.rotateLeft();
+      }
+    });
+    UIUtils.setActionForCtrlRightKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        imager.rotateRight();
+      }
+    });
   }
 
-  public JaTooImagerWindow(final File file) {
-    this();
+  private BufferedImage image;
 
-    if (file.isDirectory()) {
-
-      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
-
-      if (images.size() > 0) {
-        imagesIndex = 0;
-        showImage(images.get(0));
-      }
-    }
-
-    else {
-      images.addAll(Arrays.asList(file.getAbsoluteFile().getParentFile().listFiles(ImageFileFilter.getInstance())));
-      imagesIndex = images.indexOf(file.getAbsoluteFile());
-      showImage(file);
-    }
+  public void showImage(final BufferedImage image) {
+    viewer.showImage(this.image = image);
   }
 
-  public synchronized void setImages(List<File> files) {
-
-    images.clear();
-
-    for (File file : files) {
-
-      if (file.isDirectory()) {
-        images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
-      }
-
-      else if (ImageFileFilter.getInstance().accept(file)) {
-        images.add(file);
-      }
-    }
-
-    if (this.images.size() > 0) {
-      imagesIndex = 0;
-      showImage(images.get(0));
-    }
-  }
-
-  private synchronized void showImage(final File file) {
-
-    if (file != null) {
-      // setTitle(file.getName());
-      loader.startLoading(file);
-    }
-
-    else {
-      setTitle(null);
-      viewer.onImageLoaded(null, null);
-    }
+  public BufferedImage getImage() {
+    return image;
   }
 
   @Override
-  public void onStartLoading(File file) {
-    setTitle(file.getName() + " (loading...)");
+  public void onStartLoading(final File file) {
+    setTitle(file.getName() + " (" + UIResources.getText("title.text.loading") + ")");
+    viewer.showLoader();
   }
 
   @Override
-  public void onImageLoaded(File file, BufferedImage image) {
+  public void onImageLoaded(final File file, final BufferedImage image) {
     setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
+    showImage(image);
   }
 
   @Override
-  public void onImageError(File file, Throwable t) {}
-
-  public synchronized void showNext() {
-
-    if (images.size() == 0) {
-      showImage(null);
-      return;
-    }
-
-    imagesIndex++;
-    if (imagesIndex >= images.size()) {
-      imagesIndex = 0;
-    }
-
-    showImage(images.get(imagesIndex));
+  public void onImageError(final File file, final Throwable t) {
+    setTitle(file.getName() + " (" + UIResources.getText("title.text.loading.error") + ")");
+    viewer.showError(file, t);
   }
 
-  public synchronized void showPrev() {
-
-    if (images.size() == 0) {
-      return;
-    }
-
-    imagesIndex--;
-    if (imagesIndex < 0) {
-      imagesIndex = images.size() - 1;
-    }
-
-    showImage(images.get(imagesIndex));
-  }
-
-  public synchronized void delete() {
-
-    if (images.size() == 0) {
-      return;
-    }
-
-    File image = images.remove(imagesIndex);
-    imagesIndex--;
-
-    try {
-      FileUtils.getInstance().moveToTrash(new File[] { image });
-      logger.info("image (" + image + ") deleted (moved to trash)");
-    }
-
-    catch (IOException ex) {
-      if (showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
-        image.delete();
-        logger.info("image (" + image + ") deleted (permanently)");
-      }
-    }
-
-    showNext();
-  }
-
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#zoomIn()
-   */
-  public synchronized void zoomIn() {
+  public void zoomIn() {
     viewer.zoomIn();
   }
 
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#zoomOut()
-   */
-  public synchronized void zoomOut() {
+  public void zoomOut() {
     viewer.zoomOut();
   }
 
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#zoomToBestFit()
-   */
-  public synchronized void zoomToBestFit() {
+  public void zoomToBestFit() {
     viewer.zoomToBestFit();
   }
 
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#zoomToRealSize()
-   */
-  public synchronized void zoomToRealSize() {
+  public void zoomToRealSize() {
     viewer.zoomToRealSize();
   }
 
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#rotateLeft()
-   */
-  public synchronized void rotateLeft() {
-    viewer.rotateLeft();
-  }
-
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#rotateRight()
-   */
-  public synchronized void rotateRight() {
-    viewer.rotateRight();
-  }
-
-  private class TheDropTargetListener extends DropTargetAdapter {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void drop(DropTargetDropEvent event) {
-
-      event.acceptDrop(DnDConstants.ACTION_COPY);
-
-      Transferable transferable = event.getTransferable();
-
-      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-
-        try {
-          setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
-        }
-
-        catch (UnsupportedFlavorException | IOException e) {
-          logger.error("failed to get the dragged data", e);
-        }
-      }
-    }
-  }
 }

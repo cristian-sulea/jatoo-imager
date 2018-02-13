@@ -16,6 +16,14 @@
 
 package jatoo.imager;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -24,20 +32,29 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.AbstractAction;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import jatoo.image.ImageFileFilter;
+import jatoo.image.ImageUtils;
+import jatoo.ui.ImageLoader;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
 /**
- * The launcher.
+ * The app/launcher.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.1, February 5, 2018
+ * @version 2.0, February 13, 2018
  */
+@SuppressWarnings("serial")
 public class JaTooImager {
 
   static {
@@ -46,7 +63,7 @@ public class JaTooImager {
     System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
 
     UIUtils.setSystemLookAndFeel();
-    UIResources.setResourcesBaseClass(JaTooImagerWindow.class);
+    UIResources.setResourcesBaseClass(JaTooImager.class);
   }
 
   private static final Log logger = LogFactory.getLog(JaTooImager.class);
@@ -56,12 +73,12 @@ public class JaTooImager {
     try {
 
       if (args.length > 0) {
-        new JaTooImagerWindow(new File(args[0]));
+        new JaTooImager(new File(args[0]));
       }
 
       else if (new File("src/main/java").exists()) {
         // new JaTooImager();
-        new JaTooImagerWindow(new File("d:\\Temp\\xxx\\"));
+        new JaTooImager(new File("d:\\Temp\\xxx\\"));
       }
 
       File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
@@ -95,7 +112,7 @@ public class JaTooImager {
           File file = dir.resolve(path).toFile();
 
           try {
-            new JaTooImagerWindow(new File(FileUtils.readFileToString(file).trim()));
+            new JaTooImager(new File(FileUtils.readFileToString(file).trim()));
             file.delete();
           }
 
@@ -115,4 +132,224 @@ public class JaTooImager {
       logger.fatal("failed to watch and wait for new images", e);
     }
   }
+
+  private final JaTooImagerWindow window;
+  private final ImageLoader loader;
+
+  private final List<File> images;
+  private int imagesIndex;
+
+  public JaTooImager(final File file) {
+
+    window = new JaTooImagerWindow(this);
+    window.addDropTargetListener(new TheDropTargetListener());
+
+    loader = new ImageLoader(window);
+
+    images = new ArrayList<>();
+
+    if (file.isDirectory()) {
+
+      images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
+
+      if (images.size() > 0) {
+        imagesIndex = 0;
+        showImage(images.get(0));
+      }
+    }
+
+    else {
+      images.addAll(Arrays.asList(file.getAbsoluteFile().getParentFile().listFiles(ImageFileFilter.getInstance())));
+      imagesIndex = images.indexOf(file.getAbsoluteFile());
+      showImage(file);
+    }
+
+    //
+    //
+
+    UIUtils.setActionForEscapeKeyStroke(window.getContentPane(), new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+
+        window.setVisible(false);
+
+        loader.stopThread();
+
+        window.saveProperties();
+        window.dispose();
+
+        System.gc();
+      }
+    });
+  }
+
+  public void showImage(final File file) {
+
+    if (file != null) {
+      loader.startLoading(file);
+    }
+
+    else {
+
+      loader.stopLoading();
+
+      window.setTitle(null);
+      window.showImage(null);
+    }
+  }
+
+  public synchronized void setImages(List<File> files) {
+
+    images.clear();
+
+    for (File file : files) {
+
+      if (file.isDirectory()) {
+        images.addAll(Arrays.asList(file.getAbsoluteFile().listFiles(ImageFileFilter.getInstance())));
+      }
+
+      else if (ImageFileFilter.getInstance().accept(file)) {
+        images.add(file);
+      }
+    }
+
+    if (this.images.size() > 0) {
+      imagesIndex = 0;
+      showImage(images.get(0));
+    }
+  }
+
+  public synchronized void showNext() {
+
+    if (images.size() == 0) {
+
+      window.setTitle(null);
+      window.showImage(null);
+
+      return;
+    }
+
+    imagesIndex++;
+    if (imagesIndex >= images.size()) {
+      imagesIndex = 0;
+    }
+
+    showImage(images.get(imagesIndex));
+  }
+
+  public synchronized void showPrev() {
+
+    if (images.size() == 0) {
+
+      window.setTitle(null);
+      window.showImage(null);
+
+      return;
+    }
+
+    imagesIndex--;
+    if (imagesIndex < 0) {
+      imagesIndex = images.size() - 1;
+    }
+
+    showImage(images.get(imagesIndex));
+  }
+
+  public synchronized void delete() {
+
+    if (images.size() == 0) {
+      return;
+    }
+
+    File image = images.remove(imagesIndex);
+    imagesIndex--;
+
+    try {
+      com.sun.jna.platform.FileUtils.getInstance().moveToTrash(new File[] { image });
+      logger.info("image (" + image + ") deleted (moved to trash)");
+    }
+
+    catch (IOException ex) {
+      if (window.showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
+        image.delete();
+        logger.info("image (" + image + ") deleted (permanently)");
+      }
+    }
+
+    showNext();
+  }
+
+  /**
+   * 
+   * @see jatoo.imager.JaTooImagerViewer#zoomIn()
+   */
+  public synchronized void zoomIn() {
+    window.zoomIn();
+  }
+
+  /**
+   * @see jatoo.imager.JaTooImagerViewer#zoomOut()
+   */
+  public synchronized void zoomOut() {
+    window.zoomOut();
+  }
+
+  /**
+   * @see jatoo.imager.JaTooImagerViewer#zoomToBestFit()
+   */
+  public synchronized void zoomToBestFit() {
+    window.zoomToBestFit();
+  }
+
+  /**
+   * @see jatoo.imager.JaTooImagerViewer#zoomToRealSize()
+   */
+  public synchronized void zoomToRealSize() {
+    window.zoomToRealSize();
+  }
+
+  public synchronized void rotateLeft() {
+
+    BufferedImage image = window.getImage();
+
+    if (image != null) {
+      window.showImage(ImageUtils.rotate(image, 270));
+    }
+  }
+
+  public synchronized void rotateRight() {
+
+    BufferedImage image = window.getImage();
+
+    if (image != null) {
+      window.showImage(ImageUtils.rotate(image, 90));
+    }
+
+  }
+
+  //
+  //
+
+  private class TheDropTargetListener extends DropTargetAdapter {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void drop(DropTargetDropEvent event) {
+
+      event.acceptDrop(DnDConstants.ACTION_COPY);
+
+      Transferable transferable = event.getTransferable();
+
+      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+
+        try {
+          setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
+        }
+
+        catch (UnsupportedFlavorException | IOException e) {
+          logger.error("failed to get the dragged data", e);
+        }
+      }
+    }
+  }
+
 }

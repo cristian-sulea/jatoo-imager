@@ -31,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 import jatoo.image.ImageUtils;
-import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.ImageViewerV4;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
@@ -40,10 +39,10 @@ import jatoo.ui.UIUtils;
  * The "viewer" ({@link ImageViewerV4}) component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 3.2, January 31, 2018
+ * @version 4.0, February 13, 2018
  */
 @SuppressWarnings("serial")
-public class JaTooImagerViewer extends JComponent implements ImageLoaderListener {
+public class JaTooImagerViewer extends JComponent {
 
   private final ImageViewerV4 viewer;
   private final JLabel loader;
@@ -74,8 +73,7 @@ public class JaTooImagerViewer extends JComponent implements ImageLoaderListener
     add(viewer);
   }
 
-  @Override
-  public void onStartLoading(File file) {
+  public void showLoader() {
 
     if (loader.isVisible()) {
       viewer.setImage(null);
@@ -86,15 +84,13 @@ public class JaTooImagerViewer extends JComponent implements ImageLoaderListener
     error.setVisible(false);
   }
 
-  @Override
-  public void onImageLoaded(File file, BufferedImage image) {
+  public void showImage(final BufferedImage image) {
     viewer.setImage(image);
     loader.setVisible(false);
     error.setVisible(false);
   }
 
-  @Override
-  public void onImageError(File file, Throwable t) {
+  public void showError(File file, Throwable t) {
 
     error.setText(file + System.lineSeparator() + String.valueOf(t));
 
@@ -136,53 +132,20 @@ public class JaTooImagerViewer extends JComponent implements ImageLoaderListener
     public void removeLayoutComponent(final Component comp) {}
   }
 
-  /**
-   * 
-   * @see jatoo.ui.ImageViewerV4#zoomIn()
-   */
-  final void zoomIn() {
+  public void zoomIn() {
     viewer.zoomIn();
   }
 
-  /**
-   * 
-   * @see jatoo.ui.ImageViewerV4#zoomOut()
-   */
-  final void zoomOut() {
+  public void zoomOut() {
     viewer.zoomOut();
   }
 
-  /**
-   * 
-   * @see jatoo.ui.ImageViewerV4#setBestFit()
-   */
-  final void zoomToBestFit() {
+  public void zoomToBestFit() {
     viewer.setBestFit();
   }
 
-  /**
-   * 
-   * @see jatoo.ui.ImageViewerV4#setRealSize()
-   */
-  final void zoomToRealSize() {
+  public void zoomToRealSize() {
     viewer.setRealSize();
   }
 
-  void rotateLeft() {
-
-    BufferedImage image = viewer.getImage();
-
-    if (image != null) {
-      viewer.setImage(ImageUtils.rotate(image, 270));
-    }
-  }
-
-  void rotateRight() {
-
-    BufferedImage image = viewer.getImage();
-
-    if (image != null) {
-      viewer.setImage(ImageUtils.rotate(image, 90));
-    }
-  }
 }
