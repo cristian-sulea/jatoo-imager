@@ -23,6 +23,8 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +54,7 @@ import jatoo.ui.UIUtils;
  * The app/launcher.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 2.0, February 13, 2018
+ * @version 2.1, February 14, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImager {
@@ -169,17 +171,31 @@ public class JaTooImager {
 
     UIUtils.setActionForEscapeKeyStroke(window.getContentPane(), new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-
-        window.setVisible(false);
-
-        loader.stopThread();
-
-        window.saveProperties();
-        window.dispose();
-
-        System.gc();
+        closeWindow();
       }
     });
+
+    window.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        closeWindow();
+      }
+    });
+  }
+
+  public void closeWindow() {
+
+    window.setVisible(false);
+    window.saveProperties();
+    window.dispose();
+
+    loader.stopThread();
+
+    System.gc();
+  }
+
+  public void exit() {
+    closeWindow();
+    System.exit(0);
   }
 
   public void showImage(final File file) {

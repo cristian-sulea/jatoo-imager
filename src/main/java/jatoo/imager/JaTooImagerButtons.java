@@ -16,6 +16,7 @@
 
 package jatoo.imager;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
 import jatoo.ui.UIResources;
@@ -31,7 +33,7 @@ import jatoo.ui.UIResources;
  * The "buttons bar" component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.1, January 31, 2018
+ * @version 1.2, February 14, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerButtons extends JComponent implements ActionListener {
@@ -56,6 +58,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
   private final JButton tools;
 
+  private final JButton exit;
+
   public JaTooImagerButtons(final JaTooImager imager) {
     this.imager = imager;
 
@@ -77,6 +81,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     delete = createButton(UIResources.getImageIcon("delete-16.png"), UIResources.getText("delete.button.toolTipText"));
 
     tools = createButton(UIResources.getImageIcon("tools-16.png"), UIResources.getText("buttons.tools.toolTipText"));
+
+    exit = createButton(UIResources.getImageIcon("exit-32.png"), UIResources.getText("buttons.exit.toolTipText"));
 
     JToolBar barL = new JToolBar();
     barL.setBorder(null);
@@ -111,10 +117,19 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     barR.addSeparator();
     barR.add(tools);
 
-    setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-    add(barL);
-    add(barC);
-    add(barR);
+    JToolBar barExit = new JToolBar();
+    barExit.setBorder(null);
+    barExit.setFloatable(false);
+    barExit.add(exit);
+
+    JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    buttons.add(barL);
+    buttons.add(barC);
+    buttons.add(barR);
+
+    setLayout(new BorderLayout());
+    add(buttons, BorderLayout.CENTER);
+    add(barExit, BorderLayout.EAST);
   }
 
   private JButton createButton(Icon icon, String toolTipText) {
@@ -166,6 +181,10 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     else if (source == delete) {
       imager.delete();
+    }
+
+    else if (source == exit) {
+      imager.exit();
     }
   }
 

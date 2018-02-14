@@ -23,7 +23,6 @@ import java.io.File;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
 
 import jatoo.ui.AppWindowFrame;
 import jatoo.ui.ImageLoaderListener;
@@ -34,7 +33,7 @@ import jatoo.ui.UIUtils;
  * The window.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 5.0, February 13, 2018
+ * @version 5.1, February 14, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderListener {
@@ -56,8 +55,6 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
     JPanel contentPane = new JPanel(new BorderLayout(0, 0));
     contentPane.add(viewer, BorderLayout.CENTER);
     contentPane.add(buttons, BorderLayout.SOUTH);
-
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     setContentPane(contentPane);
     setVisible(true);
