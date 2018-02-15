@@ -84,6 +84,10 @@ public class JaTooImager {
         // new JaTooImager(new File("d:\\Temp\\xxx\\"));
       }
 
+      else {
+        new JaTooImager();
+      }
+
       File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
       images.mkdirs();
       for (File file : images.listFiles()) {
@@ -142,7 +146,7 @@ public class JaTooImager {
   private final List<File> images;
   private int imagesIndex;
 
-  public JaTooImager(final File file) {
+  public JaTooImager() {
 
     window = new JaTooImagerWindow(this);
     window.addDropTargetListener(new TheDropTargetListener());
@@ -150,6 +154,25 @@ public class JaTooImager {
     loader = new ImageLoader(window);
 
     images = new ArrayList<>();
+
+    //
+    //
+
+    UIUtils.setActionForEscapeKeyStroke(window.getContentPane(), new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        closeWindow();
+      }
+    });
+
+    window.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        closeWindow();
+      }
+    });
+  }
+
+  public JaTooImager(final File file) {
+    this();
 
     if (file.isDirectory()) {
 
@@ -187,52 +210,6 @@ public class JaTooImager {
         showImage(images.get(imagesIndex));
       }
     }
-
-    //
-    //
-
-    UIUtils.setActionForEscapeKeyStroke(window.getContentPane(), new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        closeWindow();
-      }
-    });
-
-    window.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        closeWindow();
-      }
-    });
-  }
-
-  public void closeWindow() {
-
-    window.setVisible(false);
-    window.saveProperties();
-    window.dispose();
-
-    loader.stopThread();
-
-    System.gc();
-  }
-
-  public void exit() {
-    closeWindow();
-    System.exit(0);
-  }
-
-  public void showImage(final File file) {
-
-    if (file != null) {
-      loader.startLoading(file);
-    }
-
-    else {
-
-      loader.stopLoading();
-
-      window.setTitle(null);
-      window.showImage(null);
-    }
   }
 
   public synchronized void setImages(List<File> files) {
@@ -253,6 +230,21 @@ public class JaTooImager {
     if (this.images.size() > 0) {
       imagesIndex = 0;
       showImage(images.get(0));
+    }
+  }
+
+  private void showImage(final File file) {
+
+    if (file != null) {
+      loader.startLoading(file);
+    }
+
+    else {
+
+      loader.stopLoading();
+
+      window.setTitle(null);
+      window.showImage(null);
     }
   }
 
@@ -316,31 +308,18 @@ public class JaTooImager {
     showNext();
   }
 
-  /**
-   * 
-   * @see jatoo.imager.JaTooImagerViewer#zoomIn()
-   */
   public synchronized void zoomIn() {
     window.zoomIn();
   }
 
-  /**
-   * @see jatoo.imager.JaTooImagerViewer#zoomOut()
-   */
   public synchronized void zoomOut() {
     window.zoomOut();
   }
 
-  /**
-   * @see jatoo.imager.JaTooImagerViewer#zoomToBestFit()
-   */
   public synchronized void zoomToBestFit() {
     window.zoomToBestFit();
   }
 
-  /**
-   * @see jatoo.imager.JaTooImagerViewer#zoomToRealSize()
-   */
   public synchronized void zoomToRealSize() {
     window.zoomToRealSize();
   }
@@ -361,7 +340,22 @@ public class JaTooImager {
     if (image != null) {
       window.showImage(ImageUtils.rotate(image, 90));
     }
+  }
 
+  public synchronized void closeWindow() {
+
+    window.setVisible(false);
+    window.saveProperties();
+    window.dispose();
+
+    loader.stopThread();
+
+    System.gc();
+  }
+
+  public synchronized void exit() {
+    closeWindow();
+    System.exit(0);
   }
 
   //
