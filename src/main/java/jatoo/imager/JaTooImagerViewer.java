@@ -31,12 +31,12 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 import jatoo.image.ImageUtils;
-import jatoo.ui.ImageViewerV4;
+import jatoo.ui.ImageViewer;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
 /**
- * The "viewer" ({@link ImageViewerV4}) component.
+ * The "viewer" ({@link ImageViewer}) component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
  * @version 4.0, February 13, 2018
@@ -44,13 +44,13 @@ import jatoo.ui.UIUtils;
 @SuppressWarnings("serial")
 public class JaTooImagerViewer extends JComponent {
 
-  private final ImageViewerV4 viewer;
+  private final ImageViewer viewer;
   private final JLabel loader;
   private final JTextArea error;
 
   public JaTooImagerViewer() {
 
-    viewer = new ImageViewerV4();
+    viewer = new ImageViewer();
 
     float loaderImageFontSize = UIUtils.getSmallestScreenHeight() / 90f;
     BufferedImage loaderImage = ImageUtils.create(UIResources.getText("loader.text"), new JLabel().getFont().deriveFont(loaderImageFontSize), Color.WHITE);
