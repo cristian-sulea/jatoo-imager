@@ -24,6 +24,8 @@ import java.io.File;
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 
+import jatoo.image.ImageMetadataHandler;
+import jatoo.image.ImageUtils;
 import jatoo.ui.AppWindowFrame;
 import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.UIResources;
@@ -112,8 +114,28 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
 
   @Override
   public void onImageLoaded(final File file, final BufferedImage image) {
+
+    final BufferedImage imageRotated;
+
+    switch (ImageMetadataHandler.getInstance().getOrientation(file)) {
+
+//      case 3:
+//        imageRotated = ImageUtils.rotate(image, 180);
+//        break;
+      case 6:
+        imageRotated = ImageUtils.rotate(image, 90);
+        break;
+//      case 8:
+//        imageRotated = ImageUtils.rotate(image, 270);
+//        break;
+
+      default:
+        imageRotated = image;
+        break;
+    }
+
     setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
-    showImage(image);
+    showImage(imageRotated);
   }
 
   @Override
