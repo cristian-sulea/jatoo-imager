@@ -49,12 +49,17 @@
 
     <dependency>
       <groupId>net.sulea.cristian</groupId>
-      <artifactId>jatoo-ui</artifactId>
+      <artifactId>jatoo-image</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sulea.cristian</groupId>
-      <artifactId>jatoo-properties</artifactId>
+      <artifactId>jatoo-image-metadata-extractor</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sulea.cristian</groupId>
+      <artifactId>jatoo-ui</artifactId>
       <version>${project.version}</version>
     </dependency>
 
