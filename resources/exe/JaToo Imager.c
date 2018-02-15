@@ -13,14 +13,14 @@ printf("The argument supplied is %s\n", cp);
 spawnlp( P_WAIT, "javaw.exe", "javaw.exe", "-cp", cp, "jatoo.imager.JaTooImagerLauncher", NULL );
 */
 
-char param[255];
-strcpy(param, "\"");
-strcat(param, argv[1]);
-strcat(param, "\"");
-
-spawnlp( P_WAIT, "launcher.exe", "launcher.exe", param, NULL );
-
 	if( argc == 2 ) {
+		
+		char param[255];
+		strcpy(param, "\"");
+		strcat(param, argv[1]);
+		strcat(param, "\"");
+		
+		spawnlp( P_WAIT, "launcher.exe", "launcher.exe", param, NULL );
 		
 		char * userFolder = getenv("UserProfile");
 		char * fileFolder1 = "\\.jatoo";
@@ -45,6 +45,10 @@ spawnlp( P_WAIT, "launcher.exe", "launcher.exe", param, NULL );
 		FILE * f = fopen(file, "w");
 		fprintf(f, argv[1]);
 		fclose(f);	
+	}
+	
+	else {
+		spawnlp( P_WAIT, "launcher.exe", "launcher.exe", NULL, NULL );
 	}
 	
 	return 0;
