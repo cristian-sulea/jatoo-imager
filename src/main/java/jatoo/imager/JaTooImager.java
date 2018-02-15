@@ -44,6 +44,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import info.debatty.java.stringsimilarity.JaroWinkler;
 import jatoo.image.ImageFileFilter;
 import jatoo.image.ImageUtils;
 import jatoo.ui.ImageLoader;
@@ -79,8 +80,8 @@ public class JaTooImager {
       }
 
       else if (new File("src/main/java").exists()) {
-        // new JaTooImager();
-        new JaTooImager(new File("d:\\Temp\\xxx\\"));
+        new JaTooImager(new File("D:\\Temp\\xxx\\re?eta dermatita seboreica.jpg"));
+        // new JaTooImager(new File("d:\\Temp\\xxx\\"));
       }
 
       File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
@@ -161,9 +162,30 @@ public class JaTooImager {
     }
 
     else {
+
       images.addAll(Arrays.asList(file.getAbsoluteFile().getParentFile().listFiles(ImageFileFilter.getInstance())));
       imagesIndex = images.indexOf(file.getAbsoluteFile());
-      showImage(file);
+
+      if (imagesIndex != -1) {
+        showImage(file);
+      }
+
+      else {
+
+        imagesIndex = 0;
+
+        JaroWinkler jw = new JaroWinkler();
+        double jwSimilarity = jw.similarity(file.getName(), images.get(imagesIndex).getName());
+        for (int i = imagesIndex + 1; i < images.size(); i++) {
+          double jwSimilarityTmp = jw.similarity(file.getName(), images.get(i).getName());
+          if (jwSimilarityTmp > jwSimilarity) {
+            jwSimilarity = jwSimilarityTmp;
+            imagesIndex = i;
+          }
+        }
+
+        showImage(images.get(imagesIndex));
+      }
     }
 
     //
