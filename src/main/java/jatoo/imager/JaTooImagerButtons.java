@@ -81,6 +81,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     delete = createButton(UIResources.getImageIcon("delete-16.png"), UIResources.getText("delete.button.toolTipText"));
 
     tools = createButton(UIResources.getImageIcon("tools-16.png"), UIResources.getText("buttons.tools.toolTipText"));
+    tools.setEnabled(false);
 
     exit = createButton(UIResources.getImageIcon("exit-32.png"), UIResources.getText("buttons.exit.toolTipText"));
 
@@ -110,8 +111,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     barR.add(rotateLeft);
     barR.add(rotateRight);
     barR.addSeparator();
-    // barR.add(resize);
-    // barR.addSeparator();
+    barR.add(resize);
+    barR.addSeparator();
     barR.add(delete);
 
     barR.addSeparator();
