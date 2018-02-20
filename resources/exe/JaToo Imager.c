@@ -24,8 +24,8 @@ spawnlp( P_WAIT, "javaw.exe", "javaw.exe", "-cp", cp, "jatoo.imager.JaTooImagerL
 		
 		char * userFolder = getenv("UserProfile");
 		char * fileFolder1 = "\\.jatoo";
-		char * fileFolder2 = "\\.imager";
-		char * fileFolder3 = "\\images";
+		char * fileFolder2 = "\\imager";
+		char * fileFolder3 = "\\args";
 		
 		char file[255];
 		strcpy(file, userFolder);

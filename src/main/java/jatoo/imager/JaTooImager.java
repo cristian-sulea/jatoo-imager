@@ -47,6 +47,7 @@ import org.apache.commons.logging.LogFactory;
 import info.debatty.java.stringsimilarity.JaroWinkler;
 import jatoo.image.ImageFileFilter;
 import jatoo.image.ImageUtils;
+import jatoo.imager.utils.FileLocker;
 import jatoo.ui.ImageLoader;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
@@ -55,15 +56,23 @@ import jatoo.ui.UIUtils;
  * The app/launcher.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 2.1, February 14, 2018
+ * @version 2.2, February 19, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImager {
 
+  private static final File WORKING_FOLDER = new File(new File(System.getProperty("user.home"), ".jatoo"), "imager");
+  static {
+    WORKING_FOLDER.mkdirs();
+  }
+
   static {
 
-    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
+    // System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+    // System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.Log4JLogger");
+    // System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace");
+
+    System.setProperty("logs.folder", new File(WORKING_FOLDER, "logs").getAbsolutePath());
 
     UIUtils.setSystemLookAndFeel();
     UIResources.setResourcesBaseClass(JaTooImager.class);
@@ -72,25 +81,42 @@ public class JaTooImager {
   private static final Log logger = LogFactory.getLog(JaTooImager.class);
 
   public static void main(String[] args) {
-
     try {
+
+      //
+      // exit if another instance is already running
+
+      File argsFolder = new File(WORKING_FOLDER, "args");
+      argsFolder.mkdirs();
+
+      FileLocker locker = new FileLocker(new File(WORKING_FOLDER, ".lock"));
+      if (locker.isLocked()) {
+        logger.info("another instace already started... (check for .lock file)");
+        return;
+      }
+
+      locker.lock();
+
+      //
+      //
 
       if (args.length > 0) {
         new JaTooImager(new File(args[0]));
       }
 
       else if (new File("src/main/java").exists()) {
-        new JaTooImager(new File("D:\\Temp\\xxx\\re?eta dermatita seboreica.jpg"));
-        // new JaTooImager(new File("d:\\Temp\\xxx\\"));
+        // new JaTooImager(new File("D:\\Temp\\xxx\\re?eta dermatita seboreica.jpg"));
+        new JaTooImager(new File("d:\\Temp\\xxx\\"));
+        // new JaTooImager(new File("D:\\Temp\\xxx\\20180114_185056.jpg"));
       }
 
       else {
         new JaTooImager();
       }
 
-      File images = new File(System.getProperty("user.home"), ".jatoo" + File.separatorChar + ".imager" + File.separatorChar + "images");
-      images.mkdirs();
-      for (File file : images.listFiles()) {
+      // new FileLocker(new File(images, ".lock")).lock();
+
+      for (File file : argsFolder.listFiles()) {
         file.delete();
       }
 
@@ -99,7 +125,7 @@ public class JaTooImager {
       // celalalt proces nu a apucat sa termine de scris
 
       WatchService watcher = FileSystems.getDefault().newWatchService();
-      Path dir = images.toPath();
+      Path dir = argsFolder.toPath();
       WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
 
       for (;;) {
