@@ -166,6 +166,8 @@ public class JaTooImager {
     }
   }
 
+  public static final JaTooImagerSettings SETTINGS = JaTooImagerSettings.getInstance();
+  
   private final JaTooImagerWindow window;
   private final ImageLoader loader;
 

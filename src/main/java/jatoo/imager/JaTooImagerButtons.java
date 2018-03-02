@@ -21,10 +21,12 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
 import jatoo.ui.UIResources;
@@ -49,6 +51,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
   private final JButton showPrev;
   private final JButton showNext;
 
+  private final JToggleButton info;
+
   private final JButton rotateLeft;
   private final JButton rotateRight;
 
@@ -72,6 +76,9 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     showPrev = createButton(UIResources.getImageIcon("showPrev.png"), UIResources.getText("showPrev.button.toolTipText"));
     showNext = createButton(UIResources.getImageIcon("showNext.png"), UIResources.getText("showNext.button.toolTipText"));
 
+    info = createToggleButton(UIResources.getImageIcon("info-16.png"), UIResources.getText("info.button.toolTipText"));
+    info.setEnabled(false);
+
     rotateLeft = createButton(UIResources.getImageIcon("rotateLeft-16.png"), UIResources.getText("rotateLeft.button.toolTipText"));
     rotateRight = createButton(UIResources.getImageIcon("rotateRight-16.png"), UIResources.getText("rotateRight.button.toolTipText"));
 
@@ -94,6 +101,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     barL.addSeparator();
     barL.add(zoomToBestFit);
     barL.add(zoomToRealSize);
+    barL.addSeparator();
+    barL.add(info);
 
     JToolBar barC = new JToolBar();
     barC.setBorder(null);
@@ -134,8 +143,18 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
   }
 
   private JButton createButton(Icon icon, String toolTipText) {
-
     JButton button = new JButton(icon);
+    initButton(button, toolTipText);
+    return button;
+  }
+
+  private JToggleButton createToggleButton(Icon icon, String toolTipText) {
+    JToggleButton button = new JToggleButton(icon);
+    initButton(button, toolTipText);
+    return button;
+  }
+
+  private void initButton(AbstractButton button, String toolTipText) {
 
     if (toolTipText != null) {
       button.setToolTipText(toolTipText);
@@ -143,8 +162,6 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     button.setFocusable(false);
     button.addActionListener(this);
-
-    return button;
   }
 
   @Override
@@ -162,6 +179,14 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
       imager.zoomToBestFit();
     } else if (source == zoomToRealSize) {
       imager.zoomToRealSize();
+    }
+
+    else if (source == info) {
+      if (info.isSelected()) {
+        System.out.println("selected");
+      } else {
+        System.out.println("deselected");
+      }
     }
 
     else if (source == showPrev) {
@@ -182,6 +207,10 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     else if (source == delete) {
       imager.delete();
+    }
+
+    else if (source == tools) {
+
     }
 
     else if (source == exit) {

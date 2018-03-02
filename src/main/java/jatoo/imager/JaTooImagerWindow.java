@@ -20,10 +20,14 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 
+import jatoo.image.ImageMetadata;
 import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 import jatoo.ui.AppWindowFrame;
@@ -35,7 +39,7 @@ import jatoo.ui.UIUtils;
  * The window.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 5.1, February 14, 2018
+ * @version 5.2, march 2, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderListener {
@@ -102,6 +106,10 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
     viewer.showImage(this.image = image);
   }
 
+  public void showImage(final BufferedImage image, final String dateTaken, final String orientation) {
+    viewer.showImage(image, dateTaken, orientation);
+  }
+
   public BufferedImage getImage() {
     return image;
   }
@@ -115,27 +123,40 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
   @Override
   public void onImageLoaded(final File file, final BufferedImage image) {
 
-    final BufferedImage imageRotated;
+    final BufferedImage imageToShow;
 
-    switch (ImageMetadataHandler.getInstance().getOrientation(file)) {
+    if (JaTooImager.SETTINGS.isAutoRotateOnLoadAccordingToEXIF()) {
 
-//      case 3:
-//        imageRotated = ImageUtils.rotate(image, 180);
-//        break;
-      case 6:
-        imageRotated = ImageUtils.rotate(image, 90);
-        break;
-//      case 8:
-//        imageRotated = ImageUtils.rotate(image, 270);
-//        break;
+      switch (ImageMetadataHandler.getInstance().getOrientation(file)) {
 
-      default:
-        imageRotated = image;
-        break;
+        case 3:
+          imageToShow = ImageUtils.rotate(image, 180);
+          break;
+        case 6:
+          imageToShow = ImageUtils.rotate(image, 90);
+          break;
+        case 8:
+          imageToShow = ImageUtils.rotate(image, 270);
+          break;
+
+        default:
+          imageToShow = image;
+          break;
+      }
+    }
+
+    else {
+      imageToShow = image;
     }
 
     setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
-    showImage(imageRotated);
+
+//    showImage(imageToShow);
+
+    ImageMetadata metadata = ImageMetadataHandler.getInstance().getMetadata(file);
+    String dateTaken = metadata.getDateTaken() == null ? null : new SimpleDateFormat("EEEE, d MMMM yyyy, HH:mm:ss", Locale.forLanguageTag("ro")).format(metadata.getDateTaken());
+
+    showImage(imageToShow, dateTaken, metadata.getOrientation());
   }
 
   @Override
