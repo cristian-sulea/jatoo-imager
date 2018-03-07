@@ -21,8 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
@@ -47,7 +45,8 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
   private final JaTooImagerViewer viewer;
   private final JaTooImagerButtons buttons;
 
-  public JaTooImagerWindow(final JaTooImager imager) {
+  public JaTooImagerWindow(final JaTooImager imager, final File workingFolder) {
+    super(workingFolder);
 
     //
     // canvas & loader
@@ -107,11 +106,15 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
   }
 
   public void showImage(final BufferedImage image, final String dateTaken, final String orientation) {
-    viewer.showImage(image, dateTaken, orientation);
+    viewer.showImage(this.image = image, dateTaken, orientation);
   }
 
   public BufferedImage getImage() {
     return image;
+  }
+
+  public void hideInfo() {
+    viewer.hideInfo();
   }
 
   @Override
@@ -151,12 +154,20 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
 
     setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
 
-//    showImage(imageToShow);
+    //
+    // show image (with or without info)
 
-    ImageMetadata metadata = ImageMetadataHandler.getInstance().getMetadata(file);
-    String dateTaken = metadata.getDateTaken() == null ? null : new SimpleDateFormat("EEEE, d MMMM yyyy, HH:mm:ss", Locale.forLanguageTag("ro")).format(metadata.getDateTaken());
+    if (JaTooImager.SETTINGS.isShowInfo()) {
 
-    showImage(imageToShow, dateTaken, metadata.getOrientation());
+      ImageMetadata metadata = ImageMetadataHandler.getInstance().getMetadata(file);
+      String dateTaken = metadata.getDateTaken() == null ? null : new SimpleDateFormat("EEEE, d MMMM yyyy, HH:mm:ss").format(metadata.getDateTaken());
+
+      showImage(imageToShow, dateTaken, metadata.getOrientationText());
+    }
+
+    else {
+      showImage(imageToShow);
+    }
   }
 
   @Override

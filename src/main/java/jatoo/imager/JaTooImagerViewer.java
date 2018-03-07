@@ -130,7 +130,7 @@ public class JaTooImagerViewer extends JComponent {
 
     loader.setVisible(false);
     error.setVisible(false);
-    info.setVisible(JaTooImager.SETTINGS.isShowInfo());
+    info.setVisible(false);
 
     setLayout(new TheLayoutManager());
 
@@ -157,7 +157,7 @@ public class JaTooImagerViewer extends JComponent {
 
     error.setVisible(false);
     viewer.setImage(image);
-    info.setVisible(JaTooImager.SETTINGS.isShowInfo());
+    info.setVisible(false);
     loader.setVisible(false);
 
     repaint();
@@ -171,10 +171,15 @@ public class JaTooImagerViewer extends JComponent {
     infoDateTaken.setIcon(new ImageIcon(dateTaken == null ? IMAGE_LABEL_NO_TEXT : createImageForLabel(dateTaken)));
     infoOrientation.setIcon(new ImageIcon(orientation == null ? IMAGE_LABEL_NO_TEXT : createImageForLabel(orientation)));
 
-    info.setVisible(JaTooImager.SETTINGS.isShowInfo());
+    info.setVisible(true);
 
     loader.setVisible(false);
 
+    repaint();
+  }
+
+  public void hideInfo() {
+    info.setVisible(false);
     repaint();
   }
 

@@ -26,7 +26,6 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
 import jatoo.ui.UIResources;
@@ -35,7 +34,7 @@ import jatoo.ui.UIResources;
  * The "buttons bar" component.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.2, February 14, 2018
+ * @version 1.3, March 7, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerButtons extends JComponent implements ActionListener {
@@ -51,7 +50,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
   private final JButton showPrev;
   private final JButton showNext;
 
-  private final JToggleButton info;
+  private final JButton info;
 
   private final JButton rotateLeft;
   private final JButton rotateRight;
@@ -76,8 +75,8 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     showPrev = createButton(UIResources.getImageIcon("showPrev.png"), UIResources.getText("showPrev.button.toolTipText"));
     showNext = createButton(UIResources.getImageIcon("showNext.png"), UIResources.getText("showNext.button.toolTipText"));
 
-    info = createToggleButton(UIResources.getImageIcon("info-16.png"), UIResources.getText("info.button.toolTipText"));
-    info.setEnabled(false);
+    info = createButton(UIResources.getImageIcon("info-16.png"), UIResources.getText("info.button.toolTipText"));
+    // info.setEnabled(false);
 
     rotateLeft = createButton(UIResources.getImageIcon("rotateLeft-16.png"), UIResources.getText("rotateLeft.button.toolTipText"));
     rotateRight = createButton(UIResources.getImageIcon("rotateRight-16.png"), UIResources.getText("rotateRight.button.toolTipText"));
@@ -148,11 +147,11 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     return button;
   }
 
-  private JToggleButton createToggleButton(Icon icon, String toolTipText) {
-    JToggleButton button = new JToggleButton(icon);
-    initButton(button, toolTipText);
-    return button;
-  }
+//  private JToggleButton createToggleButton(Icon icon, String toolTipText) {
+//    JToggleButton button = new JToggleButton(icon);
+//    initButton(button, toolTipText);
+//    return button;
+//  }
 
   private void initButton(AbstractButton button, String toolTipText) {
 
@@ -182,11 +181,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     }
 
     else if (source == info) {
-      if (info.isSelected()) {
-        System.out.println("selected");
-      } else {
-        System.out.println("deselected");
-      }
+      imager.setShowInfo(!JaTooImager.SETTINGS.isShowInfo());
     }
 
     else if (source == showPrev) {

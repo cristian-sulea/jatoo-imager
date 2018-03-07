@@ -89,9 +89,9 @@ public class JaTooImager {
       File argsFolder = new File(WORKING_FOLDER, "args");
       argsFolder.mkdirs();
 
-      FileLocker locker = new FileLocker(new File(WORKING_FOLDER, ".lock"));
+      FileLocker locker = new FileLocker(new File(WORKING_FOLDER, "lock.file"));
       if (locker.isLocked()) {
-        logger.info("another instace already started... (check for .lock file)");
+        logger.info("another instace already started... (check for lock file)");
         return;
       }
 
@@ -166,8 +166,8 @@ public class JaTooImager {
     }
   }
 
-  public static final JaTooImagerSettings SETTINGS = JaTooImagerSettings.getInstance();
-  
+  public static final JaTooImagerSettings SETTINGS = new JaTooImagerSettings(WORKING_FOLDER);
+
   private final JaTooImagerWindow window;
   private final ImageLoader loader;
 
@@ -176,7 +176,7 @@ public class JaTooImager {
 
   public JaTooImager() {
 
-    window = new JaTooImagerWindow(this);
+    window = new JaTooImagerWindow(this, WORKING_FOLDER);
     window.addDropTargetListener(new TheDropTargetListener());
 
     loader = new ImageLoader(window);
@@ -274,6 +274,10 @@ public class JaTooImager {
       window.setTitle(null);
       window.showImage(null);
     }
+  }
+
+  public synchronized void reload() {
+    loader.startReloading();
   }
 
   public synchronized void showNext() {
@@ -383,7 +387,19 @@ public class JaTooImager {
 
   public synchronized void exit() {
     closeWindow();
+    SETTINGS.saveSilently();
     System.exit(0);
+  }
+
+  public synchronized void setShowInfo(boolean showInfo) {
+
+    JaTooImager.SETTINGS.setShowInfo(showInfo);
+
+    if (showInfo) {
+      loader.startReloading();
+    } else {
+      window.hideInfo();
+    }
   }
 
   //

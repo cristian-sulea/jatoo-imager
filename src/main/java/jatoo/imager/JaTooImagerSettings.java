@@ -16,23 +16,41 @@
 
 package jatoo.imager;
 
+import java.io.File;
+
+import jatoo.properties.FileProperties;
+
 /**
  * The settings.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.1, March 2, 2018
+ * @version 2.0, March 7, 2018
  */
-public class JaTooImagerSettings {
+@SuppressWarnings("serial")
+public class JaTooImagerSettings extends FileProperties {
 
-  private boolean autoRotateOnLoadAccordingToEXIF = true;
-  private boolean showInfo = true;
+  public JaTooImagerSettings(final File workingFolder) {
+    super(new File(workingFolder, "settings.properties"));
+    loadSilently();
+  }
 
-  private JaTooImagerSettings() {}
+  private boolean autoRotateOnLoadAccordingToEXIF;
+  private boolean showInfo;
 
-  private static final JaTooImagerSettings INSTANCE = new JaTooImagerSettings();
+  @Override
+  protected void beforeSave() {
+    super.beforeSave();
 
-  public static final JaTooImagerSettings getInstance() {
-    return INSTANCE;
+    setProperty("autoRotateOnLoadAccordingToEXIF", autoRotateOnLoadAccordingToEXIF);
+    setProperty("showInfo", showInfo);
+  }
+
+  @Override
+  protected void afterLoad() {
+    super.afterLoad();
+
+    autoRotateOnLoadAccordingToEXIF = getPropertyAsBoolean("autoRotateOnLoadAccordingToEXIF", true);
+    showInfo = getPropertyAsBoolean("showInfo", true);
   }
 
   public boolean isAutoRotateOnLoadAccordingToEXIF() {
