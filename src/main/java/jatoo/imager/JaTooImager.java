@@ -45,6 +45,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import info.debatty.java.stringsimilarity.JaroWinkler;
+import jatoo.image.ImageCache;
+import jatoo.image.ImageCacheFile;
+import jatoo.image.ImageCacheMemory;
 import jatoo.image.ImageFileFilter;
 import jatoo.image.ImageUtils;
 import jatoo.imager.utils.FileLocker;
@@ -106,7 +109,7 @@ public class JaTooImager {
 
       else if (new File("src/main/java").exists()) {
         // new JaTooImager(new File("D:\\Temp\\xxx\\re?eta dermatita seboreica.jpg"));
-        new JaTooImager(new File("d:\\Temp\\xxx\\"));
+        new JaTooImager(new File("d:\\Temp\\xxx\\Translate Service Sequence Diagram.png"));
         // new JaTooImager(new File("D:\\Temp\\xxx\\20180114_185056.jpg"));
       }
 
@@ -167,6 +170,11 @@ public class JaTooImager {
   }
 
   public static final JaTooImagerSettings SETTINGS = new JaTooImagerSettings(WORKING_FOLDER);
+
+  public static final ImageCache IMAGE_MEMORY_CACHE = new ImageCacheMemory();
+
+  public static final ImageCache IMAGE_PREVIEW_MEMORY_CACHE = new ImageCacheMemory();
+  public static final ImageCache IMAGE_PREVIEW_FILE_CACHE = new ImageCacheFile(new File(WORKING_FOLDER, "cache"));
 
   private final JaTooImagerWindow window;
   private final ImageLoader loader;
@@ -261,18 +269,30 @@ public class JaTooImager {
     }
   }
 
+  // private final ImageCache cache = new ImageCacheMemory();
+
   private void showImage(final File file) {
 
-    if (file != null) {
-      loader.startLoading(file);
+    BufferedImage image = IMAGE_MEMORY_CACHE.get(file);
+
+    if (image != null) {
+      window.setTitle(file, image);
+      window.showImage(image);
     }
 
     else {
 
-      loader.stopLoading();
+      if (file != null) {
+        loader.startLoading(file);
+      }
 
-      window.setTitle(null);
-      window.showImage(null);
+      else {
+
+        loader.stopLoading();
+
+        window.setTitle(null);
+        window.showImage(null);
+      }
     }
   }
 

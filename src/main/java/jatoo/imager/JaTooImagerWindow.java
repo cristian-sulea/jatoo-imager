@@ -17,6 +17,7 @@
 package jatoo.imager;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -37,7 +38,7 @@ import jatoo.ui.UIUtils;
  * The window.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 5.2, march 2, 2018
+ * @version 5.4, March 15, 2018
  */
 @SuppressWarnings("serial")
 public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderListener {
@@ -119,8 +120,18 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
 
   @Override
   public void onStartLoading(final File file) {
+
     setTitle(file.getName() + " (" + UIResources.getText("title.text.loading") + ")");
     viewer.showLoader();
+
+    BufferedImage preview = JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.get(file);
+    if (preview == null) {
+      preview = JaTooImager.IMAGE_PREVIEW_FILE_CACHE.get(file);
+    }
+    if (preview != null) {
+      viewer.showImagePreview(preview);
+      JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.add(preview, file);
+    }
   }
 
   @Override
@@ -133,13 +144,13 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
       switch (ImageMetadataHandler.getInstance().getOrientation(file)) {
 
         case 3:
-          imageToShow = ImageUtils.rotate(image, 180);
+          imageToShow = ImageUtils.rotate(image, 180, Color.BLACK);
           break;
         case 6:
-          imageToShow = ImageUtils.rotate(image, 90);
+          imageToShow = ImageUtils.rotate(image, 90, Color.BLACK);
           break;
         case 8:
-          imageToShow = ImageUtils.rotate(image, 270);
+          imageToShow = ImageUtils.rotate(image, 270, Color.BLACK);
           break;
 
         default:
@@ -152,7 +163,7 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
       imageToShow = image;
     }
 
-    setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
+    setTitle(file, imageToShow);
 
     //
     // show image (with or without info)
@@ -168,12 +179,37 @@ public class JaTooImagerWindow extends AppWindowFrame implements ImageLoaderList
     else {
       showImage(imageToShow);
     }
+
+    //
+    // add to the cache(s)
+
+    JaTooImager.IMAGE_MEMORY_CACHE.add(imageToShow, file);
+
+    if (!JaTooImager.IMAGE_PREVIEW_FILE_CACHE.contains(file)) {
+
+      int max = Math.max(imageToShow.getWidth(), imageToShow.getHeight());
+      int min = Math.max(UIUtils.getBiggestScreenWidth(), UIUtils.getBiggestScreenHeight());
+
+      if (max > min) {
+        new Thread() {
+          public void run() {
+            BufferedImage preview = ImageUtils.resizeToFit(ImageUtils.resizeToFit(imageToShow, 200), Math.min(min, max));
+            JaTooImager.IMAGE_PREVIEW_FILE_CACHE.add(preview, file);
+            JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.add(preview, file);
+          }
+        }.start();
+      }
+    }
   }
 
   @Override
   public void onImageError(final File file, final Throwable t) {
     setTitle(file.getName() + " (" + UIResources.getText("title.text.loading.error") + ")");
     viewer.showError(file, t);
+  }
+
+  public void setTitle(final File file, final BufferedImage image) {
+    super.setTitle(file.getName() + " (" + image.getWidth() + "x" + image.getHeight() + ")");
   }
 
   public void zoomIn() {
