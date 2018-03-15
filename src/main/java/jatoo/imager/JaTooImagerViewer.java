@@ -162,11 +162,32 @@ public class JaTooImagerViewer extends JComponent {
 
     repaint();
   }
+  
+  public void showImagePreview(final BufferedImage image) {
+
+    error.setVisible(false);
+    viewer.setImage(image);
+    info.setVisible(false);
+    loader.setVisible(true);
+
+    repaint();
+  }
 
   public void showImage(final BufferedImage image, final String dateTaken, final String orientation) {
 
     error.setVisible(false);
     viewer.setImage(image);
+
+//    if ((double) image.getWidth() / (double) getWidth() < 2 || (double) image.getHeight() / (double) getHeight() < 2) {
+//      viewer.setInterpolationBilinear();
+//    } else {
+//      viewer.removeInterpolation();
+//      System.out.println("remove");
+//    }
+//
+//    System.out.println(image.getHeight() / (double) getHeight());
+//    System.out.println(getSize());
+//    System.out.println(image.getWidth());
 
     infoDateTaken.setIcon(new ImageIcon(dateTaken == null ? IMAGE_LABEL_NO_TEXT : createImageForLabel(dateTaken)));
     infoOrientation.setIcon(new ImageIcon(orientation == null ? IMAGE_LABEL_NO_TEXT : createImageForLabel(orientation)));
