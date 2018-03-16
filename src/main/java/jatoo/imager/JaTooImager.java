@@ -205,6 +205,19 @@ public class JaTooImager {
         closeWindow();
       }
     });
+
+    //
+    //
+
+    UIUtils.setActionForCtrlCKeyStroke(window.getContentPane(), new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        BufferedImage image = window.getImage();
+        if (image != null && image.getWidth() > 800 || image.getHeight() > 800) {
+          image = ImageUtils.resizeToFit(image, 800);
+        }
+        ImageUtils.copyToClipboard(image);
+      }
+    });
   }
 
   public JaTooImager(final File file) {
