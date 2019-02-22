@@ -5,12 +5,14 @@
   <parent>
     <groupId>net.sulea.cristian</groupId>
     <artifactId>jatoo</artifactId>
-    <relativePath>../jatoo/pom.xml</relativePath>
-    <version>5.0</version>
+<!--     <relativePath>../jatoo/pom.xml</relativePath> -->
+    <version>5</version>
   </parent>
 
   <artifactId>jatoo-imager</artifactId>
   <packaging>jar</packaging>
+
+  <version>5.0</version>
 
 
   <name>JaToo Imager</name>
@@ -32,8 +34,6 @@
         <role>architect</role>
         <role>developer</role>
       </roles>
-      <organization>cristian.sulea.net</organization>
-      <organizationUrl>http://cristian.sulea.net</organizationUrl>
     </developer>
   </developers>
 
@@ -50,17 +50,19 @@
     <dependency>
       <groupId>net.sulea.cristian</groupId>
       <artifactId>jatoo-image</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sulea.cristian</groupId>
       <artifactId>jatoo-image-metadata-extractor</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sulea.cristian</groupId>
       <artifactId>jatoo-ui</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
     </dependency>
 
     <dependency>
@@ -73,16 +75,10 @@
       <artifactId>jna-platform</artifactId>
       <version>4.5.1</version>
     </dependency>
-
     <dependency>
       <groupId>info.debatty</groupId>
       <artifactId>java-string-similarity</artifactId>
       <version>RELEASE</version>
-    </dependency>
-
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
     </dependency>
 
   </dependencies>
