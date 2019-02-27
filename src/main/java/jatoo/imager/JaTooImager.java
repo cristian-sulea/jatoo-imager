@@ -104,7 +104,11 @@ public class JaTooImager {
       //
 
       if (args.length > 0) {
-        new JaTooImager(new File(args[0]));
+        String arg = args[0];
+        for (int i = 1; i < args.length; i++) {
+          arg += (" " + args[i]);
+        }
+        new JaTooImager(new File(arg));
       }
 
       else if (new File("src/main/java").exists()) {
@@ -165,7 +169,11 @@ public class JaTooImager {
     }
 
     catch (IOException | InterruptedException e) {
-      logger.fatal("failed to watch and wait for new images", e);
+      logger.error("failed to watch and wait for new images", e);
+    }
+    
+    catch (Throwable e) {
+      logger.fatal("unexpected exception", e);
     }
   }
 
@@ -236,27 +244,31 @@ public class JaTooImager {
     else {
 
       images.addAll(Arrays.asList(file.getAbsoluteFile().getParentFile().listFiles(ImageFileFilter.getInstance())));
-      imagesIndex = images.indexOf(file.getAbsoluteFile());
 
-      if (imagesIndex != -1) {
-        showImage(file);
-      }
+      if (images.size() > 0) {
 
-      else {
+        imagesIndex = images.indexOf(file.getAbsoluteFile());
 
-        imagesIndex = 0;
-
-        JaroWinkler jw = new JaroWinkler();
-        double jwSimilarity = jw.similarity(file.getName(), images.get(imagesIndex).getName());
-        for (int i = imagesIndex + 1; i < images.size(); i++) {
-          double jwSimilarityTmp = jw.similarity(file.getName(), images.get(i).getName());
-          if (jwSimilarityTmp > jwSimilarity) {
-            jwSimilarity = jwSimilarityTmp;
-            imagesIndex = i;
-          }
+        if (imagesIndex != -1) {
+          showImage(file);
         }
 
-        showImage(images.get(imagesIndex));
+        else {
+
+          imagesIndex = 0;
+
+          JaroWinkler jw = new JaroWinkler();
+          double jwSimilarity = jw.similarity(file.getName(), images.get(imagesIndex).getName());
+          for (int i = imagesIndex + 1; i < images.size(); i++) {
+            double jwSimilarityTmp = jw.similarity(file.getName(), images.get(i).getName());
+            if (jwSimilarityTmp > jwSimilarity) {
+              jwSimilarity = jwSimilarityTmp;
+              imagesIndex = i;
+            }
+          }
+
+          showImage(images.get(imagesIndex));
+        }
       }
     }
   }
