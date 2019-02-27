@@ -91,6 +91,8 @@
     <launch4j.mainClass>jatoo.imager.JaTooImager</launch4j.mainClass>
     <launch4j.singleInstance.mutexName>jatoo-imager-mutex</launch4j.singleInstance.mutexName>
 
+    <skip.plugin.set.license>true</skip.plugin.set.license>
+
     <skip.plugin.source>true</skip.plugin.source>
     <skip.plugin.surefire>true</skip.plugin.surefire>
     <skip.plugin.surefire.report>true</skip.plugin.surefire.report>
