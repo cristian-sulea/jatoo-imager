@@ -76,7 +76,7 @@ public class JaTooImagerViewer extends JComponent {
   }
 
   private final JLabel loader;
-  private final ImageViewer viewer;
+  public final ImageViewer viewer;
 
   private final JTextArea error;
 

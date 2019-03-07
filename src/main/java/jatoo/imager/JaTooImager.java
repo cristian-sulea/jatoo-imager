@@ -16,8 +16,8 @@
 
 package jatoo.imager;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetAdapter;
@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -49,9 +50,16 @@ import jatoo.image.ImageCache;
 import jatoo.image.ImageCacheFile;
 import jatoo.image.ImageCacheMemory;
 import jatoo.image.ImageFileFilter;
+import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
+import jatoo.imager.actions.ActionCloseWindow;
+import jatoo.imager.actions.ActionCopyImageToClipboard;
+import jatoo.imager.actions.ActionExit;
+import jatoo.imager.actions.ActionPasteFromClipboard;
 import jatoo.imager.utils.FileLocker;
+import jatoo.ui.AppWindowFrame;
 import jatoo.ui.ImageLoader;
+import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.UIResources;
 import jatoo.ui.UIUtils;
 
@@ -62,7 +70,7 @@ import jatoo.ui.UIUtils;
  * @version 2.2, February 19, 2018
  */
 @SuppressWarnings("serial")
-public class JaTooImager {
+public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  {
 
   private static final File WORKING_FOLDER = new File(new File(System.getProperty("user.home"), ".jatoo"), "imager");
   static {
@@ -184,50 +192,102 @@ public class JaTooImager {
   public static final ImageCache IMAGE_PREVIEW_MEMORY_CACHE = new ImageCacheMemory();
   public static final ImageCache IMAGE_PREVIEW_FILE_CACHE = new ImageCacheFile(new File(WORKING_FOLDER, "cache"));
 
-  private final JaTooImagerWindow window;
-  private final ImageLoader loader;
+  public final JaTooImagerDataTransfer dataTransfer = new JaTooImagerDataTransfer(this);
+  
+  public final ActionCloseWindow actionCloseWindow = new ActionCloseWindow(this);
+  public final ActionCopyImageToClipboard actionCopyImageToClipboard = new ActionCopyImageToClipboard(this);
+  public final ActionExit actionExit = new ActionExit(this);
+  public final ActionPasteFromClipboard actionPasteFromClipboard = new ActionPasteFromClipboard(this);
 
-  private final List<File> images;
+  public final JaTooImagerViewer viewer = new JaTooImagerViewer();
+  private final JaTooImagerButtons buttons = new JaTooImagerButtons(this);
+  
+//  public final JaTooImagerWindow window = new JaTooImagerWindow(this, WORKING_FOLDER);
+  private final ImageLoader loader = new ImageLoader(this);
+  
+  private final List<File> images = new ArrayList<>();
   private int imagesIndex;
 
+
   public JaTooImager() {
-
-    window = new JaTooImagerWindow(this, WORKING_FOLDER);
-    window.addDropTargetListener(new TheDropTargetListener());
-
-    loader = new ImageLoader(window);
-
-    images = new ArrayList<>();
+    super(WORKING_FOLDER);
 
     //
-    //
+    // init GUI
 
-    UIUtils.setActionForEscapeKeyStroke(window.getContentPane(), new AbstractAction() {
+    JComponent contentPane = getContentPane();
+    contentPane.setLayout(new BorderLayout(0, 0));
+    contentPane.add(viewer, BorderLayout.CENTER);
+    contentPane.add(buttons, BorderLayout.SOUTH);
+
+    //
+    // more actions
+    //TODO: to be replaced by JaTooImagerAction
+
+    UIUtils.setActionForRightKeyStroke(contentPane, new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
-        closeWindow();
+        showNext();
+      }
+    });
+    UIUtils.setActionForLeftKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        showPrev();
       }
     });
 
-    window.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        closeWindow();
+    UIUtils.setActionForDeleteKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        delete();
+      }
+    });
+
+    UIUtils.setActionForCtrlLeftKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        rotateLeft();
+      }
+    });
+    UIUtils.setActionForCtrlRightKeyStroke(contentPane, new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        rotateRight();
       }
     });
 
     //
     //
 
-    UIUtils.setActionForCtrlCKeyStroke(window.getContentPane(), new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        BufferedImage image = window.getImage();
-        if (image != null && image.getWidth() > 800 || image.getHeight() > 800) {
-          image = ImageUtils.resizeToFit(image, 800);
+    addDropTargetListener(new DropTargetAdapter() {
+
+      @Override
+      public void drop(DropTargetDropEvent event) {
+        
+        event.acceptDrop(DnDConstants.ACTION_COPY);
+        
+        try {
+          dataTransfer.process(event.getTransferable());
+        } catch (UnsupportedFlavorException | IOException e) {
+          showMessageError(UIResources.getText("dnd.error.title"), e.getMessage());
+          logger.error("failed to get and process the dragged data", e);
         }
-        ImageUtils.copyToClipboard(image);
       }
     });
-  }
 
+    //
+    // intercept window closing effect and use close window action
+
+    addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        actionCloseWindow.actionPerformed();
+      }
+    });
+
+    //
+    // shows the application window
+
+    setVisible(true);
+    contentPane.setFocusable(true);
+    contentPane.requestFocusInWindow();
+  }
+  
   public JaTooImager(final File file) {
     this();
 
@@ -273,6 +333,98 @@ public class JaTooImager {
     }
   }
 
+  @Override
+  public void onStartLoading(File file) {
+
+    setTitle(file.getName() + " (" + UIResources.getText("title.text.loading") + ")");
+    viewer.showLoader();
+
+    BufferedImage preview = JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.get(file);
+    if (preview == null) {
+      preview = JaTooImager.IMAGE_PREVIEW_FILE_CACHE.get(file);
+    }
+    if (preview != null) {
+      viewer.showImagePreview(preview);
+      JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.add(preview, file);
+    }
+  }
+  
+  @Override
+  public void onImageLoaded(File file, BufferedImage image) {
+
+    final BufferedImage imageToShow;
+
+    if (JaTooImager.SETTINGS.isAutoRotateOnLoadAccordingToEXIF()) {
+
+      switch (ImageMetadataHandler.getInstance().getOrientation(file)) {
+
+        case 3:
+          imageToShow = ImageUtils.rotate(image, 180, Color.BLACK);
+          break;
+        case 6:
+          imageToShow = ImageUtils.rotate(image, 90, Color.BLACK);
+          break;
+        case 8:
+          imageToShow = ImageUtils.rotate(image, 270, Color.BLACK);
+          break;
+
+        default:
+          imageToShow = image;
+          break;
+      }
+    }
+
+    else {
+      imageToShow = image;
+    }
+
+    setTitle(file, imageToShow);
+
+    //
+    // show image (with or without info)
+
+    System.out.println(JaTooImager.SETTINGS.isShowInfo());
+
+//    if (JaTooImager.SETTINGS.isShowInfo()) {
+//
+//      ImageMetadata metadata = ImageMetadataHandler.getInstance().getMetadata(file);
+//      String dateTaken = metadata.getDateTaken() == null ? null : new SimpleDateFormat("EEEE, d MMMM yyyy, HH:mm:ss").format(metadata.getDateTaken());
+//
+//      showImage(imageToShow, dateTaken, metadata.getOrientationText());
+//    }
+//
+//    else {
+    viewer.showImage(imageToShow);
+//    }
+
+    //
+    // add to the cache(s)
+
+    JaTooImager.IMAGE_MEMORY_CACHE.add(imageToShow, file);
+
+    if (!JaTooImager.IMAGE_PREVIEW_FILE_CACHE.contains(file)) {
+
+      int max = Math.max(imageToShow.getWidth(), imageToShow.getHeight());
+      int min = Math.max(UIUtils.getBiggestScreenWidth(), UIUtils.getBiggestScreenHeight());
+
+      if (max > min) {
+        new Thread() {
+          public void run() {
+            BufferedImage preview = ImageUtils.resizeToFit(ImageUtils.resizeToFit(imageToShow, 200), Math.min(min, max));
+            JaTooImager.IMAGE_PREVIEW_FILE_CACHE.add(preview, file);
+            JaTooImager.IMAGE_PREVIEW_MEMORY_CACHE.add(preview, file);
+          }
+        }.start();
+      }
+    }
+  }
+  
+  @Override
+  public void onImageError(File file, Throwable t) {
+    setTitle(file.getName() + " (" + UIResources.getText("title.text.loading.error") + ")");
+    viewer.showError(file, t);
+  }
+  
   public synchronized void setImages(List<File> files) {
 
     images.clear();
@@ -301,8 +453,8 @@ public class JaTooImager {
     BufferedImage image = IMAGE_MEMORY_CACHE.get(file);
 
     if (image != null) {
-      window.setTitle(file, image);
-      window.showImage(image);
+      setTitle(file, image);
+      viewer.showImage(image);
     }
 
     else {
@@ -315,10 +467,22 @@ public class JaTooImager {
 
         loader.stopLoading();
 
-        window.setTitle(null);
-        window.showImage(null);
+        setTitle(null);
+        viewer.showImage(null);
       }
     }
+  }
+
+  private void setTitle(final File file, final String text) {
+    if (text == null) {
+      super.setTitle(file.getName());
+    } else {
+      super.setTitle(file.getName() + " (" + text + ")");
+    }
+  }
+  
+  public void setTitle(final File file, final BufferedImage image) {
+    setTitle(file, image.getWidth() + "x" + image.getHeight());
   }
 
   public synchronized void reload() {
@@ -329,8 +493,8 @@ public class JaTooImager {
 
     if (images.size() == 0) {
 
-      window.setTitle(null);
-      window.showImage(null);
+      setTitle(null);
+      viewer.showImage(null);
 
       return;
     }
@@ -347,8 +511,8 @@ public class JaTooImager {
 
     if (images.size() == 0) {
 
-      window.setTitle(null);
-      window.showImage(null);
+      setTitle(null);
+      viewer.showImage(null);
 
       return;
     }
@@ -376,7 +540,7 @@ public class JaTooImager {
     }
 
     catch (IOException ex) {
-      if (window.showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
+      if (showConfirmationWarning(UIResources.getText("detele.warning.title"), UIResources.getText("delete.warning.message"))) {
         image.delete();
         logger.info("image (" + image + ") deleted (permanently)");
       }
@@ -386,44 +550,44 @@ public class JaTooImager {
   }
 
   public synchronized void zoomIn() {
-    window.zoomIn();
+    viewer.viewer.zoomIn();
   }
 
   public synchronized void zoomOut() {
-    window.zoomOut();
+    viewer.viewer.zoomOut();
   }
 
   public synchronized void zoomToBestFit() {
-    window.zoomToBestFit();
+    viewer.viewer.setBestFit();
   }
 
   public synchronized void zoomToRealSize() {
-    window.zoomToRealSize();
+    viewer.viewer.setRealSize();
   }
 
   public synchronized void rotateLeft() {
 
-    BufferedImage image = window.getImage();
+    BufferedImage image = viewer.viewer.getImage();
 
     if (image != null) {
-      window.showImage(ImageUtils.rotate(image, 270));
+      viewer.showImage(ImageUtils.rotate(image, 270));
     }
   }
 
   public synchronized void rotateRight() {
 
-    BufferedImage image = window.getImage();
+    BufferedImage image = viewer.viewer.getImage();
 
     if (image != null) {
-      window.showImage(ImageUtils.rotate(image, 90));
+      viewer.showImage(ImageUtils.rotate(image, 90));
     }
   }
 
   public synchronized void closeWindow() {
 
-    window.setVisible(false);
-    window.saveProperties();
-    window.dispose();
+    setVisible(false);
+    saveProperties();
+    dispose();
 
     loader.stopThread();
 
@@ -438,39 +602,13 @@ public class JaTooImager {
 
   public synchronized void setShowInfo(boolean showInfo) {
 
-    JaTooImager.SETTINGS.setShowInfo(showInfo);
-
-    if (showInfo) {
-      loader.startReloading();
-    } else {
-      window.hideInfo();
-    }
-  }
-
-  //
-  //
-
-  private class TheDropTargetListener extends DropTargetAdapter {
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void drop(DropTargetDropEvent event) {
-
-      event.acceptDrop(DnDConstants.ACTION_COPY);
-
-      Transferable transferable = event.getTransferable();
-
-      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-
-        try {
-          setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
-        }
-
-        catch (UnsupportedFlavorException | IOException e) {
-          logger.error("failed to get the dragged data", e);
-        }
-      }
-    }
+//    JaTooImager.SETTINGS.setShowInfo(showInfo);
+//
+//    if (showInfo) {
+//      loader.startReloading();
+//    } else {
+//      window.hideInfo();
+//    }
   }
 
 }

@@ -41,27 +41,25 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
   private final JaTooImager imager;
 
-  private final JButton zoomIn;
-  private final JButton zoomOut;
+  private JButton zoomIn;
+  private JButton zoomOut;
 
-  private final JButton zoomToBestFit;
-  private final JButton zoomToRealSize;
+  private JButton zoomToBestFit;
+  private JButton zoomToRealSize;
 
-  private final JButton showPrev;
-  private final JButton showNext;
+  private JButton showPrev;
+  private JButton showNext;
 
-  private final JButton info;
+  private JButton info;
 
-  private final JButton rotateLeft;
-  private final JButton rotateRight;
+  private JButton rotateLeft;
+  private JButton rotateRight;
 
-  private final JButton resize;
+  private JButton resize;
 
-  private final JButton delete;
+  private JButton delete;
 
-  private final JButton tools;
-
-  private final JButton exit;
+  private JButton tools;
 
   public JaTooImagerButtons(final JaTooImager imager) {
     this.imager = imager;
@@ -88,8 +86,6 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     tools = createButton(UIResources.getImageIcon("tools-16.png"), UIResources.getText("buttons.tools.toolTipText"));
     tools.setEnabled(false);
-
-    exit = createButton(UIResources.getImageIcon("exit-32.png"), UIResources.getText("buttons.exit.toolTipText"));
 
     JToolBar barL = new JToolBar();
     barL.setBorder(null);
@@ -129,7 +125,7 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     JToolBar barExit = new JToolBar();
     barExit.setBorder(null);
     barExit.setFloatable(false);
-    barExit.add(exit);
+    barExit.add(createButtonFromAction(imager.actionExit));
 
     JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     buttons.add(barL);
@@ -141,17 +137,25 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
     add(barExit, BorderLayout.EAST);
   }
 
+  private JButton createButtonFromAction(JaTooImagerAction action) {
+    JButton button = new JButton(action);
+    // button.setHideActionText(true);
+    button.setText(null);
+    button.setFocusable(false);
+    return button;
+  }
+
   private JButton createButton(Icon icon, String toolTipText) {
     JButton button = new JButton(icon);
     initButton(button, toolTipText);
     return button;
   }
 
-//  private JToggleButton createToggleButton(Icon icon, String toolTipText) {
-//    JToggleButton button = new JToggleButton(icon);
-//    initButton(button, toolTipText);
-//    return button;
-//  }
+  // private JToggleButton createToggleButton(Icon icon, String toolTipText) {
+  // JToggleButton button = new JToggleButton(icon);
+  // initButton(button, toolTipText);
+  // return button;
+  // }
 
   private void initButton(AbstractButton button, String toolTipText) {
 
@@ -206,10 +210,6 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     else if (source == tools) {
 
-    }
-
-    else if (source == exit) {
-      imager.exit();
     }
   }
 
