@@ -54,6 +54,7 @@ import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 import jatoo.imager.actions.ActionCloseWindow;
 import jatoo.imager.actions.ActionCopyImageToClipboard;
+import jatoo.imager.actions.ActionCopyViewportToClipboard;
 import jatoo.imager.actions.ActionExit;
 import jatoo.imager.actions.ActionPasteFromClipboard;
 import jatoo.imager.utils.FileLocker;
@@ -92,6 +93,11 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
   private static final Log logger = LogFactory.getLog(JaTooImager.class);
 
   public static void main(String[] args) {
+
+    if (logger.isInfoEnabled()) {
+      logger.info("args: " + Arrays.asList(args));
+    }
+
     try {
 
       //
@@ -112,11 +118,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
       //
 
       if (args.length > 0) {
-        String arg = args[0];
-        for (int i = 1; i < args.length; i++) {
-          arg += (" " + args[i]);
-        }
-        new JaTooImager(new File(arg));
+        new JaTooImager(new File(args[0]));
       }
 
       else if (new File("src/main/java").exists()) {
@@ -179,7 +181,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
     catch (IOException | InterruptedException e) {
       logger.error("failed to watch and wait for new images", e);
     }
-    
+
     catch (Throwable e) {
       logger.fatal("unexpected exception", e);
     }
@@ -196,6 +198,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
   
   public final ActionCloseWindow actionCloseWindow = new ActionCloseWindow(this);
   public final ActionCopyImageToClipboard actionCopyImageToClipboard = new ActionCopyImageToClipboard(this);
+  public final ActionCopyViewportToClipboard actionCopyViewportToClipboard = new ActionCopyViewportToClipboard(this);
   public final ActionExit actionExit = new ActionExit(this);
   public final ActionPasteFromClipboard actionPasteFromClipboard = new ActionPasteFromClipboard(this);
 

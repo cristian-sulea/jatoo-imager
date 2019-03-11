@@ -14,5 +14,5 @@ echo %~1 > %UserProfile%\.jatoo\imager\args\%FILENAME%
 
 del %UserProfile%\.jatoo\imager\lock.file
 if not exist %UserProfile%\.jatoo\imager\lock.file (
-	start javaw -cp %~dp0\lib\* jatoo.imager.JaTooImager %~1
+	start javaw -cp %~dp0\lib\* jatoo.imager.JaTooImager %1
 )

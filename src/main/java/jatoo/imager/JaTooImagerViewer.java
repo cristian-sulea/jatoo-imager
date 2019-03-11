@@ -90,6 +90,7 @@ public class JaTooImagerViewer extends JComponent {
     loader.setSize(loader.getPreferredSize());
 
     viewer = new ImageViewer();
+    viewer.setScrollBarsVisibilityToNever();
 
     error = new JTextArea();
     error.setOpaque(false);
