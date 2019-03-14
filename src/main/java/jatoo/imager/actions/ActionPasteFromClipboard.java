@@ -25,7 +25,7 @@ public class ActionPasteFromClipboard extends JaTooImagerAction {
   @Override
   public void actionPerformed(final JaTooImager imager) {
     try {
-      imager.process(Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
+      imager.handleDataTransfer(Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
     } catch (UnsupportedFlavorException | IOException e) {
       imager.showMessageError(UIResources.getText("cnp.error.title"), e.getMessage());
       logger.error("failed to get the transferable (copy/paste) data", e);

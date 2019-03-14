@@ -23,9 +23,6 @@ import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -259,17 +256,14 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
     });
 
     //
-    //
+    // add drag and drop listener
 
-    addDropTargetListener(new DropTargetAdapter() {
+    addDragAndDropListener(new DragAndDropListener() {
 
       @Override
-      public void drop(DropTargetDropEvent event) {
-        
-        event.acceptDrop(DnDConstants.ACTION_COPY);
-        
+      public void onDrop(Transferable transferable) {
         try {
-          process(event.getTransferable());
+          handleDataTransfer(transferable);
         } catch (UnsupportedFlavorException | IOException e) {
           showMessageError(UIResources.getText("dnd.error.title"), e.getMessage());
           logger.error("failed to get and process the dragged data", e);
@@ -396,7 +390,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
   }
 
   @SuppressWarnings("unchecked")
-  public synchronized void process(final Transferable transferable) throws UnsupportedFlavorException, IOException {
+  public synchronized void handleDataTransfer(final Transferable transferable) throws UnsupportedFlavorException, IOException {
 
     if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
       setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
