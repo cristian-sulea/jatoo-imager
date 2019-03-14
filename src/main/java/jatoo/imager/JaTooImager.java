@@ -18,6 +18,10 @@ package jatoo.imager;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetAdapter;
@@ -54,11 +58,12 @@ import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 import jatoo.imager.actions.ActionCloseWindow;
 import jatoo.imager.actions.ActionCopyImageToClipboard;
-import jatoo.imager.actions.ActionCopyViewportToClipboard;
+import jatoo.imager.actions.ActionCopyVisibleImageToClipboard;
 import jatoo.imager.actions.ActionExit;
 import jatoo.imager.actions.ActionPasteFromClipboard;
 import jatoo.imager.utils.FileLocker;
 import jatoo.ui.AppWindowFrame;
+import jatoo.ui.ImageCanvas;
 import jatoo.ui.ImageLoader;
 import jatoo.ui.ImageLoaderListener;
 import jatoo.ui.UIResources;
@@ -194,13 +199,11 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
   public static final ImageCache IMAGE_PREVIEW_MEMORY_CACHE = new ImageCacheMemory();
   public static final ImageCache IMAGE_PREVIEW_FILE_CACHE = new ImageCacheFile(new File(WORKING_FOLDER, "cache"));
 
-  public final JaTooImagerDataTransfer dataTransfer = new JaTooImagerDataTransfer(this);
-  
-  public final ActionCloseWindow actionCloseWindow = new ActionCloseWindow(this);
-  public final ActionCopyImageToClipboard actionCopyImageToClipboard = new ActionCopyImageToClipboard(this);
-  public final ActionCopyViewportToClipboard actionCopyViewportToClipboard = new ActionCopyViewportToClipboard(this);
-  public final ActionExit actionExit = new ActionExit(this);
-  public final ActionPasteFromClipboard actionPasteFromClipboard = new ActionPasteFromClipboard(this);
+  private final ActionCloseWindow actionCloseWindow = new ActionCloseWindow(this);
+  private final ActionCopyImageToClipboard actionCopyImageToClipboard = new ActionCopyImageToClipboard(this);
+  private final ActionCopyVisibleImageToClipboard actionCopyViewportToClipboard = new ActionCopyVisibleImageToClipboard(this);
+  private final ActionExit actionExit = new ActionExit(this);
+  private final ActionPasteFromClipboard actionPasteFromClipboard = new ActionPasteFromClipboard(this);
 
   public final JaTooImagerViewer viewer = new JaTooImagerViewer();
   private final JaTooImagerButtons buttons = new JaTooImagerButtons(this);
@@ -266,7 +269,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
         event.acceptDrop(DnDConstants.ACTION_COPY);
         
         try {
-          dataTransfer.process(event.getTransferable());
+          process(event.getTransferable());
         } catch (UnsupportedFlavorException | IOException e) {
           showMessageError(UIResources.getText("dnd.error.title"), e.getMessage());
           logger.error("failed to get and process the dragged data", e);
@@ -279,7 +282,7 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
 
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        actionCloseWindow.actionPerformed();
+        closeWindow();
       }
     });
 
@@ -336,6 +339,82 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
     }
   }
 
+  //
+  // ---
+  //
+
+  public ActionCloseWindow getActionCloseWindow() {
+    return actionCloseWindow;
+  }
+
+  public ActionCopyImageToClipboard getActionCopyImageToClipboard() {
+    return actionCopyImageToClipboard;
+  }
+
+  public ActionCopyVisibleImageToClipboard getActionCopyViewportToClipboard() {
+    return actionCopyViewportToClipboard;
+  }
+
+  public ActionExit getActionExit() {
+    return actionExit;
+  }
+
+  public ActionPasteFromClipboard getActionPasteFromClipboard() {
+    return actionPasteFromClipboard;
+  }
+
+  //
+  // ---
+  //
+
+  public synchronized void copyImageToClipboard() {
+
+    BufferedImage image = viewer.viewer.getImage();
+
+    int clipboardWidth = UIUtils.getSmallestScreenWidth();
+    int clipboardHeight = UIUtils.getSmallestScreenHeight();
+
+    if (image != null && image.getWidth() > clipboardWidth || image.getHeight() > clipboardHeight) {
+      image = ImageUtils.resizeToFit(image, clipboardWidth, clipboardHeight);
+    }
+
+    ImageUtils.copyToClipboard(image);
+  }
+
+  public synchronized void copyVisibleImageToClipboard() {
+
+    ImageCanvas canvas = viewer.viewer.getCanvas();
+    Rectangle visibleImageBounds = canvas.getImageBounds().intersection(canvas.getVisibleRect());
+
+    BufferedImage visibleImage = ImageUtils.create(visibleImageBounds.width, visibleImageBounds.height, true);
+    Graphics2D g = visibleImage.createGraphics();
+    g.translate(-visibleImageBounds.x, -visibleImageBounds.y);
+    canvas.paint(g);
+    g.dispose();
+
+    ImageUtils.copyToClipboard(visibleImage);
+  }
+
+  @SuppressWarnings("unchecked")
+  public synchronized void process(final Transferable transferable) throws UnsupportedFlavorException, IOException {
+
+    if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+      setImages((List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor));
+    }
+
+    else if (transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+      System.out.println(transferable.getTransferData(DataFlavor.imageFlavor));
+    }
+
+    else {
+      throw new UnsupportedFlavorException(transferable.getTransferDataFlavors()[0]);
+    }
+  }
+
+  //
+  // ---
+  //
+  
   @Override
   public void onStartLoading(File file) {
 
@@ -613,5 +692,6 @@ public class JaTooImager extends AppWindowFrame implements ImageLoaderListener  
 //      window.hideInfo();
 //    }
   }
+
 
 }

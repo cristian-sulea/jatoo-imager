@@ -127,11 +127,6 @@ public abstract class JaTooImagerAction extends AbstractAction {
 
   @Override
   public final void actionPerformed(final ActionEvent e) {
-    System.out.println(getClass());
-    actionPerformed(imager);
-  }
-
-  public final void actionPerformed() {
     actionPerformed(imager);
   }
 

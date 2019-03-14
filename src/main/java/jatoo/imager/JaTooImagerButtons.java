@@ -28,6 +28,9 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import jatoo.ui.UIResources;
 
 /**
@@ -38,6 +41,7 @@ import jatoo.ui.UIResources;
  */
 @SuppressWarnings("serial")
 public class JaTooImagerButtons extends JComponent implements ActionListener {
+  private static final Log logger = LogFactory.getLog(JaTooImagerButtons.class);
 
   private final JaTooImager imager;
 
@@ -121,11 +125,12 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
 
     barR.addSeparator();
     barR.add(tools);
+    barR.add(createButtonFromAction(imager.getActionCopyImageToClipboard()));
 
     JToolBar barExit = new JToolBar();
     barExit.setBorder(null);
     barExit.setFloatable(false);
-    barExit.add(createButtonFromAction(imager.actionExit));
+    barExit.add(createButtonFromAction(imager.getActionExit()));
 
     JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     buttons.add(barL);
@@ -140,7 +145,20 @@ public class JaTooImagerButtons extends JComponent implements ActionListener {
   private JButton createButtonFromAction(JaTooImagerAction action) {
     JButton button = new JButton(action);
     // button.setHideActionText(true);
-    button.setText(null);
+
+    if (button.getIcon() != null) {
+      button.setText(null);
+    }
+
+    else {
+
+      logger.error("no icon for action " + action.getClass().getName());
+
+      if (button.getText() == null) {
+        button.setText("#" + action.getClass().getSimpleName());
+      }
+    }
+
     button.setFocusable(false);
     return button;
   }

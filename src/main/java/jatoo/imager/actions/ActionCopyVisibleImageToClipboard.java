@@ -8,20 +8,20 @@ import jatoo.imager.JaTooImager;
 import jatoo.imager.JaTooImagerAction;
 
 @SuppressWarnings("serial")
-public class ActionCopyImageToClipboard extends JaTooImagerAction {
+public class ActionCopyVisibleImageToClipboard extends JaTooImagerAction {
 
-  public ActionCopyImageToClipboard(JaTooImager imager) {
+  public ActionCopyVisibleImageToClipboard(JaTooImager imager) {
     super(imager);
   }
 
   @Override
   public void actionPerformed(final JaTooImager imager) {
-    imager.copyImageToClipboard();
+    imager.copyVisibleImageToClipboard();
   }
 
   @Override
   protected KeyStroke getKeyStroke() {
-    return KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK);
+    return KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK);
   }
 
 }
